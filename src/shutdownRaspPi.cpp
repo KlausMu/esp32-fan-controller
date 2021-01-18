@@ -12,9 +12,10 @@ bool shutdownRaspPi(){
   bool res = false;
   if (checkWiFiAndReconnectTwice()){
     HTTPClient http;
-    http.begin(shutdownRequest); // Specify the URL
-    int httpCode = http.GET();  //   GET();   // Make the request
- 
+    http.begin(shutdownRequest);
+    http.addHeader("Content-Type", "text/plain");
+    int httpCode = http.POST(shutdownPayload);
+
     if (httpCode > 0) { //Check for the returning code
         String payload = http.getString();
         log_printf(MY_LOG_FORMAT("httpCode = %d"), httpCode);

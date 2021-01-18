@@ -203,7 +203,8 @@ static_assert(false, "You cannot disable both MQTT and touch, otherwise you cann
 */
 
 #ifdef showShutdownButton
-const char* const shutdownRequest  = "http://<IPAddressOfYourOpenHABserver:Port>/classicui/CMD?Shutdown3DPrinter=ON";
+const char* const shutdownRequest  = "http://<IPAddressOfYourOpenHABserver:Port>/rest/items/Shutdown3DPrinter";
+const char* const shutdownPayload  = "ON";
 const int shutdownCountdown        = 30;  // in seconds
 #endif
 

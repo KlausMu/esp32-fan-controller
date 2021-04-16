@@ -106,6 +106,7 @@ const char* const wifi_password          = "YourWifiPassword";
 #ifdef useMQTT
 const char* const mqtt_server            = "IPAddressOfYourBroker";
 const char* const mqtt_user              = "myUser or empty";
+const int  mqtt_server_port              = 1883; // port by defaut is 1883
 const char* const mqtt_pass              = "myPassword or empty";
 const char* const mqtt_clientName        = "esp32_3dprinter";
 /*

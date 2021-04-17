@@ -22,7 +22,7 @@ bool reconnect();
 
 WiFiClient wifiClient;
 
-PubSubClient client(mqtt_server, 1883, callback, wifiClient);
+PubSubClient client(mqtt_server, mqtt_server_port, callback, wifiClient);
 #endif
 
 void setup_mqtt(){

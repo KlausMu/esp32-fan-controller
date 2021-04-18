@@ -1,4 +1,5 @@
 #include <driver/gpio.h>
+#include <esp32-hal-gpio.h>
 /*
 Mode 1: pwm mode
 directly setting fan speed via pwm signal

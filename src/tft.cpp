@@ -43,7 +43,7 @@ void initTFT(void) {
   #ifdef DRIVER_ILI9341
   // switch display on
   pinMode(TFT_LED, OUTPUT);
-  digitalWrite(TFT_LED, LOW);
+  digitalWrite(TFT_LED, LED_ON);
   tft.begin();
   myFont = &FreeSans9pt7b;
   textSizeOffset = 0;

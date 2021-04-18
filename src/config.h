@@ -167,14 +167,16 @@ const int TFT_rotation          = 1; // use 1 (landscape) or 3 (landscape upside
 
 #ifdef useTouch
 const int TOUCH_CS              = GPIO_NUM_14;
-// Only AZ-Touch: here you have to set the pin for TOUCH_IRQ. The older "ArduiTouch" and the newer "AZ-Touch" use different pins
-// use GPIO_NUM_2 for the older "ArduiTouch" 2.4 inch
+// Only AZ-Touch: here you have to set the pin for TOUCH_IRQ. The older "ArduiTouch" and the newer "AZ-Touch" use different pins. And you have to set the LED-PIN to different values to light up the TFT.
+// 1. "ArduiTouch" 2.4 inch (older version)
 // https://www.az-delivery.de/en/products/az-touch-wandgehauseset-mit-touchscreen-fur-esp8266-und-esp32
-const int TOUCH_IRQ             = GPIO_NUM_2 ;   // touch screen interrupt
-// use GPIO_NUM_27 for the newer "AZ-Touch" 2.8 inch, since November 2020
+// const int TOUCH_IRQ            = GPIO_NUM_2 ;   // touch screen interrupt
+// const int LED_ON               = LOW;
+// 2. "AZ-Touch" 2.8 inch, since November 2020
 // https://www.az-delivery.de/en/products/az-touch-wandgehauseset-mit-2-8-zoll-touchscreen-fur-esp8266-und-esp32
 // https://www.az-delivery.de/en/blogs/azdelivery-blog-fur-arduino-und-raspberry-pi/az-touch-mod
-// const int TOUCH_IRQ          = GPIO_NUM_27 ;   // touch screen interrupt
+const int TOUCH_IRQ            = GPIO_NUM_27 ;   // touch screen interrupt
+const int LED_ON               = HIGH;
 #endif
 
 // sanity check

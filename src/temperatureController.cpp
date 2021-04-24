@@ -7,6 +7,8 @@
 #include "mqtt.h"
 #include "sensorBME280.h"
 #include "tft.h"
+#include "sensorDHT.h"
+#include "DHT.h"
 
 float targetTemperature;
 float actualTemperature;
@@ -71,8 +73,6 @@ void setFanPWMbasedOnTemperature(void) {
     newPWMvalue = 255;
   }
   
-  // log_printf(MY_LOG_FORMAT("difftemp = %.2"), difftemp);
-  // log_printf(MY_LOG_FORMAT("newPWMvalue = %d"), newPWMvalue);
 
   updateMQTT_Screen_withNewPWMvalue(newPWMvalue, false);
   #endif

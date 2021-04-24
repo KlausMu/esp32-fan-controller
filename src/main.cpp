@@ -9,6 +9,8 @@
 #include "tft.h"
 #include "tftTouch.h"
 #include "wifiCommunication.h"
+#include "DHT.h"   // Librairie des capteurs DHT  https://github.com/adafruit/DHT-sensor-library
+#include "sensorDHT.h"   
 
 unsigned long millisecondsSinceStart = 0;
 unsigned long millisecondsLast1000Cycle = 0;
@@ -18,7 +20,6 @@ void setup(){
   Serial.begin(115200);
   Serial.println("");
   log_printf(MY_LOG_FORMAT("Setting things up ..."));
-
   #ifdef useWIFI
   setup_wifi();
   #endif
@@ -36,6 +37,9 @@ void setup(){
   #ifdef useTemperatureSensorBME280
   initBME280();
   #endif
+  #ifdef useTemperatureSensorDHT
+  initDHT();
+   #endif
   #ifdef useAutomaticTemperatureControl
   initTemperatureController();
   #endif
@@ -44,7 +48,6 @@ void setup(){
   millisecondsLast1000Cycle = millis();
   millisecondsLast10000Cycle = millis();
 
-  log_printf(MY_LOG_FORMAT("Settings done. Have fun."));
 }
 
 void loop(){
@@ -64,6 +67,9 @@ void loop(){
   if ((unsigned long)(millisecondsSinceStart - millisecondsLast1000Cycle) >= 1000) {
     #ifdef useTemperatureSensorBME280
     updateBME280();
+    #endif
+    #ifdef useTemperatureSensorDHT
+    updateDHT();
     #endif
     #ifdef useAutomaticTemperatureControl
     setFanPWMbasedOnTemperature();

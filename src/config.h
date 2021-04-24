@@ -19,13 +19,15 @@ First set mode, then go further down in this file to set other options needed fo
 
 */
 // --- setting mode -------------------------------------------------------------------------------------------------------------------------
-// #define useAutomaticTemperatureControl
+ #define useAutomaticTemperatureControl
   #ifdef useAutomaticTemperatureControl
     // --- choose how to set target temperature. Activate only one. --------------------------------------
-    #define setActualTemperatureViaBME280
+  //  #define setActualTemperatureViaBME280
+    #define setActualTemperatureViaDHT
    //  #define setActualTemperatureViaMQTT
   #endif
-// #define useTemperatureSensorBME280
+//#define useTemperatureSensorBME280
+#define useTemperatureSensorDHT
 #define useWIFI
 #define useMQTT
 // #define useTFT
@@ -72,16 +74,21 @@ const int pwmStep                    = 10;
 const int initialPwmValue            = 120;
 
 // sanity check
-#if !defined(setActualTemperatureViaBME280) && !defined(setActualTemperatureViaMQTT) && defined(useAutomaticTemperatureControl)
-static_assert(false, "You have to use \"#define setActualTemperatureViaBME280\" or \"#define setActualTemperatureViaMQTT\" when having \"#define useAutomaticTemperatureControl\"");
+#if !defined(setActualTemperatureViaDHT) &&!defined(setActualTemperatureViaBME280) && !defined(setActualTemperatureViaMQTT) && defined(useAutomaticTemperatureControl)
+static_assert(false, "You have to use \"#define setActualTemperatureViaBME280\" or \"#define setActualTemperatureViaMQTT\" or \"#define setActualTemperatureViaDHT\" when having \"#define useAutomaticTemperatureControl\"");
 #endif
 #if defined(setActualTemperatureViaBME280) && !defined(useTemperatureSensorBME280)
 static_assert(false, "You have to use \"#define useTemperatureSensorBME280\" when having \"#define setActualTemperatureViaBME280\"");
 #endif
+#if defined(setActualTemperatureViaDHT) && !defined(useTemperatureSensorDHT)
+static_assert(false, "You have to use \"#define useTemperatureSensorDHT\" when having \"#define setActualTemperatureViaDHT\"");
+#endif
 #if defined(setActualTemperatureViaBME280) && defined(setActualTemperatureViaMQTT)
 static_assert(false, "You cannot have both \"#define setActualTemperatureViaBME280\" and \"#define setActualTemperatureViaMQTT\"");
 #endif
-
+#if defined(setActualTemperatureViaDHT) && defined(setActualTemperatureViaMQTT)
+static_assert(false, "You cannot have both \"#define setActualTemperatureViaDHT\" and \"#define setActualTemperatureViaMQTT\"");
+#endif
 // --- temperature sensor BME280 ------------------------------------------------------------------------------------------------------------
 
 #ifdef useTemperatureSensorBME280
@@ -94,21 +101,30 @@ const uint8_t BME280_addr      = 0x76;
 const float heightOverSealevelAtYourLocation = 112.0;
 #endif
 
+// --- temperature sensor DHT ------------------------------------------------------------------------------------------------------------
+
+#ifdef useTemperatureSensorDHT
+// Dé-commentez la ligne qui correspond à votre capteur 
+  // DHT 11 
+  // DHT 22  (AM2302)
+  // DHT 21 (AM2301)
+
+//#define DHTTYPE DHT11     // DHT 11 
+ #define DHTTYPE DHT22      // DHT 22  (AM2302)
+//#define DHTTYPE DHT21     // DHT 21 (AM2301)
+
+const int DHTPIN               =   GPIO_NUM_4;  // Changer le pin sur lequel est branché le DHT
+
+#endif
+
 // --- wifi ---------------------------------------------------------------------------------------------------------------------------------
 
 #ifdef useWIFI
-const char* const wifi_ssid              = "YourWifiSSID";
-const char* const wifi_password          = "YourWifiPassword";
 #endif
 
 // --- mqtt ---------------------------------------------------------------------------------------------------------------------------------
 
 #ifdef useMQTT
-const char* const mqtt_server            = "IPAddressOfYourBroker";
-const int  mqtt_server_port              = 1883; // port by defaut is 1883
-const char* const mqtt_user              = "myUser or empty";
-const char* const mqtt_pass              = "myPassword or empty";
-const char* const mqtt_clientName        = "esp32_3dprinter";
 /*
 For understanding when "cmnd", "stat" and "tele" is used, have a look at how Tasmota is doing it.
 https://tasmota.github.io/docs/MQTT
@@ -127,6 +143,9 @@ const char* const mqttCmndFanPWM         = "esp32_fan_controller/cmnd/FANPWM";
 const char* const mqttStatFanPWM         = "esp32_fan_controller/stat/FANPWM";
 
 #ifdef useTemperatureSensorBME280
+const char* const mqttTeleState1         = "esp32_fan_controller/tele/STATE1";
+#endif
+#ifdef useTemperatureSensorDHT
 const char* const mqttTeleState1         = "esp32_fan_controller/tele/STATE1";
 #endif
 const char* const mqttTeleState2         = "esp32_fan_controller/tele/STATE2";

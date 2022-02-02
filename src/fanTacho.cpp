@@ -28,7 +28,7 @@ void updateTacho(void) {
     // detach interrupt while calculating rpm
     detachInterrupt(digitalPinToInterrupt(tachoPin)); 
     // calculate rpm
-    last_rpm = counter_rpm * (60 / numberOfInterrupsInOneSingleRotation) * (1000 / tachoUpdateCycle);
+    last_rpm = counter_rpm * ((float)60 / (float)numberOfInterrupsInOneSingleRotation) * ((float)1000 / (float)tachoUpdateCycle);
     // log_printf(MY_LOG_FORMAT("fan rpm = %d"), last_rpm);
 
     // reset counter

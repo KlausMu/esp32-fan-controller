@@ -24,7 +24,7 @@ First set mode, then go further down in this file to set other options needed fo
   #ifdef useAutomaticTemperatureControl
     // --- choose how to set target temperature. Activate only one. --------------------------------------
     #define setActualTemperatureViaBME280
-   //  #define setActualTemperatureViaMQTT
+    // #define setActualTemperatureViaMQTT
   #endif
 // #define useTemperatureSensorBME280
 #define useWIFI

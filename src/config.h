@@ -32,7 +32,7 @@ First set mode, then go further down in this file to set other options needed fo
 // #define useTFT
   #ifdef useTFT
     // --- choose which display to use. Activate only one. -----------------------------------------------
-   //  #define DRIVER_ILI9341       // 2.8 inch touch panel, 320x240, used in AZ-Touch
+    // #define DRIVER_ILI9341       // 2.8 inch touch panel, 320x240, used in AZ-Touch
     #define DRIVER_ST7735        // 1.8 inch panel,       160x128
   #endif
 // #define useTouch
@@ -102,6 +102,23 @@ const char* const wifi_ssid              = "YourWifiSSID";
 const char* const wifi_password          = "YourWifiPassword";
 #endif
 
+// --- OTA Update ---------------------------------------------------------------------------------------------------------------------------
+#define useOTAUpdate
+// #define useOTA_RTOS     // not recommended because of additional 10K of heap space needed
+
+#if !defined(useWIFI) && defined(useOTAUpdate)
+static_assert(false, "\"#define useOTAUpdate\" is only possible with \"#define useWIFI\"");
+#endif
+#if !defined(ESP32) && defined(useOTA_RTOS)
+static_assert(false, "\"#define useOTA_RTOS\" is only possible with ESP32");
+#endif
+#if defined(useOTA_RTOS) && !defined(useOTAUpdate)
+static_assert(false, "You cannot use \"#define useOTA_RTOS\" without \"#define useOTAUpdate\"");
+#endif
+
+#define useSerial
+#define useTelnetStream
+
 // --- mqtt ---------------------------------------------------------------------------------------------------------------------------------
 
 #ifdef useMQTT
@@ -126,12 +143,16 @@ const char* const mqttCmndActualTemp     = "esp32_fan_controller/cmnd/ACTUALTEMP
 const char* const mqttStatActualTemp     = "esp32_fan_controller/stat/ACTUALTEMP";
 const char* const mqttCmndFanPWM         = "esp32_fan_controller/cmnd/FANPWM";
 const char* const mqttStatFanPWM         = "esp32_fan_controller/stat/FANPWM";
+#if defined(useOTAUpdate)
+const char* const mqttCmndOTA            = "esp32_fan_controller/cmnd/OTA";
+#endif
 
 #ifdef useTemperatureSensorBME280
 const char* const mqttTeleState1         = "esp32_fan_controller/tele/STATE1";
 #endif
 const char* const mqttTeleState2         = "esp32_fan_controller/tele/STATE2";
 const char* const mqttTeleState3         = "esp32_fan_controller/tele/STATE3";
+const char* const mqttTeleState4         = "esp32_fan_controller/tele/STATE4";
 
 #endif
 
@@ -172,13 +193,15 @@ const int TOUCH_CS              = GPIO_NUM_14;
 // 1. "ArduiTouch" 2.4 inch (older version)
 // https://www.az-delivery.de/en/products/az-touch-wandgehauseset-mit-touchscreen-fur-esp8266-und-esp32
 // const int TOUCH_IRQ            = GPIO_NUM_2 ;   // touch screen interrupt
+#endif
 // const int LED_ON               = LOW;
+#ifdef useTouch
 // 2. "AZ-Touch" 2.8 inch, since November 2020
 // https://www.az-delivery.de/en/products/az-touch-wandgehauseset-mit-2-8-zoll-touchscreen-fur-esp8266-und-esp32
 // https://www.az-delivery.de/en/blogs/azdelivery-blog-fur-arduino-und-raspberry-pi/az-touch-mod
 const int TOUCH_IRQ            = GPIO_NUM_27 ;   // touch screen interrupt
-const int LED_ON               = HIGH;
 #endif
+const int LED_ON               = HIGH;
 
 // sanity check
 #if defined(useTouch) && !defined(useTFT)

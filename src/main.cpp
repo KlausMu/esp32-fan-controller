@@ -1,29 +1,48 @@
 #include <Arduino.h>
-#include "sensorBME280.h"
+
 #include "config.h"
+#include "log.h"
+#include "wifiCommunication.h"
+#include "mqtt.h"
+#include "sensorBME280.h"
 #include "fanPWM.h"
 #include "fanTacho.h"
-#include "log.h"
-#include "mqtt.h"
 #include "temperatureController.h"
 #include "tft.h"
 #include "tftTouch.h"
-#include "wifiCommunication.h"
 
-unsigned long millisecondsSinceStart = 0;
-unsigned long millisecondsLast1000Cycle = 0;
-unsigned long millisecondsLast10000Cycle = 0;
+#if defined(useOTAUpdate)
+  // https://github.com/SensorsIot/ESP32-OTA
+  #include "OTA.h"
+  #if !defined(useOTA_RTOS)
+    #include <ArduinoOTA.h>
+  #endif
+#endif
+#if defined(useTelnetStream)
+#include "TelnetStream.h"
+#endif
+
+unsigned long previousMillis1000Cycle = 0;
+unsigned long interval1000Cycle = 1000;
+unsigned long previousMillis10000Cycle = 0;
+unsigned long interval10000Cycle = 10000;
 
 void setup(){
   Serial.begin(115200);
   Serial.println("");
-  log_printf(MY_LOG_FORMAT("Setting things up ..."));
+  Log.printf("Setting things up ...\r\n");
 
   #ifdef useWIFI
-  setup_wifi();
+  wifi_setup();
+  wifi_enable();
   #endif
-  #ifdef useMQTT
-  setup_mqtt();
+  #if defined(useOTAUpdate)
+  OTA_setup("ESP32fancontroller");
+  // Do not start OTA. Save heap space and start it via MQTT only when needed.
+  // ArduinoOTA.begin();
+  #endif
+  #if defined(useTelnetStream)
+  TelnetStream.begin();
   #endif
   #ifdef useTFT
   initTFT();
@@ -40,11 +59,7 @@ void setup(){
   initTemperatureController();
   #endif
 
-  // set to current millis()
-  millisecondsLast1000Cycle = millis();
-  millisecondsLast10000Cycle = millis();
-
-  log_printf(MY_LOG_FORMAT("Settings done. Have fun."));
+  Log.printf("Settings done. Have fun.\r\n");
 }
 
 void loop(){
@@ -54,14 +69,21 @@ void loop(){
   #ifdef useTouch
   processUserInput();
   #endif
+  #if defined(useOTAUpdate) && !defined(useOTA_RTOS)
+  // If you do not use FreeRTOS, you have to regulary call the handle method
+  ArduinoOTA.handle();
+  #endif
   // mqtt_loop() is doing mqtt keepAlive, processes incoming messages and hence triggers callback
   #ifdef useMQTT
   mqtt_loop();
   #endif
 
+  unsigned long currentMillis = millis();
+
   // functions that shall be called every 1000 ms
-  millisecondsSinceStart = millis();
-  if ((unsigned long)(millisecondsSinceStart - millisecondsLast1000Cycle) >= 1000) {
+  if ((currentMillis - previousMillis1000Cycle) >= interval1000Cycle) {
+    previousMillis1000Cycle = currentMillis;
+
     #ifdef useTemperatureSensorBME280
     updateBME280();
     #endif
@@ -71,18 +93,15 @@ void loop(){
     #ifdef useTFT
     draw_screen();
     #endif
-
-    millisecondsLast1000Cycle = millisecondsSinceStart;
   }
 
   // functions that shall be called every 10000 ms
-  millisecondsSinceStart = millis();
-  if ((unsigned long)(millisecondsSinceStart - millisecondsLast10000Cycle) >= 10000) {
+  if ((currentMillis - previousMillis10000Cycle) >= interval10000Cycle) {
+    previousMillis10000Cycle = currentMillis;
+
     #ifdef useMQTT
     mqtt_publish_tele();
     #endif
     doLog();
-
-    millisecondsLast10000Cycle = millisecondsSinceStart;
   }
 }

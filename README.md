@@ -5,6 +5,8 @@ This project describes how to use an ESP32 microcontroller for controlling a 4 p
 * measurement of fan speed via tacho signal
 * measurement of ambient values via BME280: temperature, humidity, pressure
 * support of MQTT
+* support of OTA (over the air updates of firmware). Please see <a href="https://github.com/KlausMu/esp32-fan-controller/wiki/06-OTA---Over-the-air-updates">Wiki: 06 OTA Over the air updates</a>
+
 * TFT display for showing status information, different resolutions supported (tested with 320x240 and 160x128)
 * TFT touch display for setting pwm or target temperature
 * optional: integration into home automation software <a href="https://www.openhab.org/">openHAB</a>

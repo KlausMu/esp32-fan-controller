@@ -1,160 +1,117 @@
-#include <PubSubClient.h>
-#include <WiFi.h>
+#include <Arduino.h>
+#include <ArduinoOTA.h>
+#if defined(ESP32)
+  #include <WiFi.h>
+#endif
+#if defined(ESP8266)
+  #include <ESP8266WiFi.h> 
+#endif
 #include <WiFiClient.h>
+#include <PubSubClient.h>
+
 #include "config.h"
-#include "fanPWM.h"
+#include "log.h"
+#include "wifiCommunication.h"
+#include "mqtt.h"
 #include "fanPWM.h"
 #include "fanTacho.h"
-#include "log.h"
 #include "sensorBME280.h"
 #include "temperatureController.h"
 #include "tft.h"
-#include "wifiCommunication.h"
 
 #ifdef useMQTT
 // https://randomnerdtutorials.com/esp32-mqtt-publish-subscribe-arduino-ide/
 // https://github.com/knolleary/pubsubclient
 // https://gist.github.com/igrr/7f7e7973366fc01d6393
-long lastReconnectAttempt = 0;
+
+unsigned long reconnectInterval = 5000;
+// in order to do reconnect immediately ...
+unsigned long lastReconnectAttempt = millis() - reconnectInterval - 1;
+
 void callback(char* topic, byte* payload, unsigned int length);
-bool checkConnection();
-bool reconnect();
 
 WiFiClient wifiClient;
 
-PubSubClient client(mqtt_server, mqtt_server_port, callback, wifiClient);
-#endif
+PubSubClient mqttClient(mqtt_server, mqtt_server_port, callback, wifiClient);
 
-void setup_mqtt(){
-  #ifdef useMQTT
-  // in order to do reconnect immediately ...
-  lastReconnectAttempt = millis() - 5001;
-  if (checkConnection()){
-    log_printf(MY_LOG_FORMAT("  MQTT sucessfully initialized."));
-  } else {
-    log_printf(MY_LOG_FORMAT("  MQTT connection failed."));
-  };
-  #else
-  log_printf(MY_LOG_FORMAT("    MQTT is disabled in config.h"));
-  #endif
-}
+bool checkMQTTconnection();
 
 void mqtt_loop(){
-  #ifdef useMQTT
-  checkConnection(); // checkConnection includes client.loop()
-  #endif
-}
-
-#ifdef useMQTT
-bool checkConnection(){
-  if (!checkWiFiAndReconnectTwice()){
-    log_printf(MY_LOG_FORMAT("  Cannot connect to MQTT server. No WiFi connection."));
-    return false;
-  }
-  if (!client.connected()) {
-    long now = millis();
-    if ((unsigned long)(now - lastReconnectAttempt) > 5000) {
-      lastReconnectAttempt = now;
+  if (!mqttClient.connected()) {
+    unsigned long currentMillis = millis();
+    if ((currentMillis - lastReconnectAttempt) > reconnectInterval) {
+      lastReconnectAttempt = currentMillis;
       // Attempt to reconnect
-      if (reconnect()) {
-        lastReconnectAttempt = 0;
-      }
+      checkMQTTconnection();
     }
-  } else {
-    // Client connected
-    client.loop();
+  }  
+
+  if (mqttClient.connected()) {
+    mqttClient.loop();
   }
-  return client.connected();
 }
 
-bool reconnect() {
-  if (client.connect((char*) mqtt_clientName, (char*) mqtt_user, (char*) mqtt_pass)) {
-    log_printf(MY_LOG_FORMAT("  Connected to MQTT broker"));
+bool checkMQTTconnection() {
+  if (wifiIsDisabled) return false;
+
+  if (WiFi.isConnected()) {
+    if (mqttClient.connected()) {
+      return true;
+    } else {
+      // try to connect to mqtt server
+      if (mqttClient.connect((char*) mqtt_clientName, (char*) mqtt_user, (char*) mqtt_pass)) {
+        Log.printf("  Successfully connected to MQTT broker\r\n");
     
-    // subscribes to messages with given topic.
-    // Callback function will be called 1. in client.loop() 2. when sending a message
-    client.subscribe(mqttCmndTargetTemp);
-    client.subscribe(mqttCmndActualTemp);
-    client.subscribe(mqttCmndFanPWM);
-
-  } else {
-    log_printf(MY_LOG_FORMAT("  MQTT connection failed. Will try later ..."));
-  }
-  return client.connected();
-}
-
-void callback(char* topic, byte* payload, unsigned int length) {
-  // handle message arrived
-  std::string strPayload(reinterpret_cast<const char *>(payload), length);
-
-  log_printf(MY_LOG_FORMAT("MQTT message arrived [%s] %s"), topic, strPayload.c_str());
-
-  String topicReceived(topic);
-  String topicCmndTargetTemp(mqttCmndTargetTemp);
-  String topicCmndActualTemp(mqttCmndActualTemp);
-  String topicCmndFanPWM(mqttCmndFanPWM);
-  if (topicReceived == topicCmndTargetTemp) {
-    #ifdef useAutomaticTemperatureControl
-    log_printf(MY_LOG_FORMAT("Setting targetTemp via mqtt"));
-    float num_float = ::atof(strPayload.c_str());
-    log_printf(MY_LOG_FORMAT("new targetTemp: %.2f"), num_float);
-    updatePWM_MQTT_Screen_withNewTargetTemperature(num_float, true);
-    #else
-    log_printf(MY_LOG_FORMAT("\"#define useAutomaticTemperatureControl\" is NOT used in config.h Cannot set target temperature. Please set fan pwm."));
-    updatePWM_MQTT_Screen_withNewTargetTemperature(getTargetTemperature(), true);
-    #endif
-  } else if (topicReceived == topicCmndActualTemp) {
-    #if defined(useAutomaticTemperatureControl) && defined(setActualTemperatureViaMQTT)
-    log_printf(MY_LOG_FORMAT("Setting actualTemp via mqtt"));
-    float num_float = ::atoi(strPayload.c_str());
-    log_printf(MY_LOG_FORMAT("new actualTemp: %.2f"), num_float);
-    updatePWM_MQTT_Screen_withNewActualTemperature(num_float, true);
-    #else
-    log_printf(MY_LOG_FORMAT("\"#define setActualTemperatureViaMQTT\" is NOT used in config.h  Cannot set actual temperature. Please use BME280."));
-    updatePWM_MQTT_Screen_withNewActualTemperature(getActualTemperature(), true);
-    #endif
-  } else if (topicReceived == topicCmndFanPWM) {
-    #ifndef useAutomaticTemperatureControl
-    log_printf(MY_LOG_FORMAT("Setting fan pwm via mqtt"));
-    int num_int = ::atoi(strPayload.c_str());
-    log_printf(MY_LOG_FORMAT("new fan pwm: %d"), num_int);
-    updateMQTT_Screen_withNewPWMvalue(num_int, true);
-    #else
-    log_printf(MY_LOG_FORMAT("\"#define useAutomaticTemperatureControl\" is used in config.h  Cannot set fan pwm. Please set target temperature."));
-    updateMQTT_Screen_withNewPWMvalue(getPWMvalue(), true);
-    #endif
-  }
-}
-
-void publishMQTTMessage( const char *topic, const char *payload){
-  // don't do loop here, messages to send get in wrong order
-//if (checkConnection()) { // checkConnection includes client.loop()
-    if (client.connected()){
-      log_printf(MY_LOG_FORMAT("Sending mqtt payload to topic \"%s\": %s"), topic, payload);
-      
-      if (client.publish(topic, payload)) {
-        // log_printf(MY_LOG_FORMAT("Publish ok"));
+        // subscribes to messages with given topic.
+        // Callback function will be called 1. in client.loop() 2. when sending a message
+        mqttClient.subscribe(mqttCmndTargetTemp);
+        mqttClient.subscribe(mqttCmndActualTemp);
+        mqttClient.subscribe(mqttCmndFanPWM);
+        #if defined(useOTAUpdate)
+        mqttClient.subscribe(mqttCmndOTA);
+        #endif
+      } else {
+        Log.printf("  MQTT connection failed (but WiFi is available). Will try later ...\r\n");
       }
-      else {
-        log_printf(MY_LOG_FORMAT("Publish failed"));
-      }
+      return mqttClient.connected();
     }
-//};  
+  } else {
+    Log.printf("  No connection to MQTT server, because WiFi ist not connected.\r\n");
+    return false;
+  }  
 }
 
-void mqtt_publish_stat_targetTemp() {
-  publishMQTTMessage(mqttStatTargetTemp, ((String)getTargetTemperature()).c_str());
-};
-void mqtt_publish_stat_actualTemp() {
-  publishMQTTMessage(mqttStatActualTemp, ((String)getActualTemperature()).c_str());
-};
-void mqtt_publish_stat_fanPWM() {
-  publishMQTTMessage(mqttStatFanPWM,     ((String)getPWMvalue()).c_str());
-};
-#endif
+bool publishMQTTMessage( const char *topic, const char *payload){
+  if (wifiIsDisabled) return false;
 
-void mqtt_publish_tele() {
-  #ifdef useMQTT
+  if (checkMQTTconnection()) {
+//  Log.printf("Sending mqtt payload to topic \"%s\": %s\r\n", topic, payload);
+      
+    if (mqttClient.publish(topic, payload)) {
+      // Log.printf("Publish ok\r\n");
+      return true;
+    }
+    else {
+      Log.printf("Publish failed\r\n");
+    }
+  } else {
+    Log.printf("  Cannot publish mqtt message, because checkMQTTconnection failed (WiFi or mqtt is not connected)\r\n");
+  }
+  return false;
+}
+
+bool mqtt_publish_stat_targetTemp() {
+  return publishMQTTMessage(mqttStatTargetTemp, ((String)getTargetTemperature()).c_str());
+};
+bool mqtt_publish_stat_actualTemp() {
+  return publishMQTTMessage(mqttStatActualTemp, ((String)getActualTemperature()).c_str());
+};
+bool mqtt_publish_stat_fanPWM() {
+  return publishMQTTMessage(mqttStatFanPWM,     ((String)getPWMvalue()).c_str());
+};
+
+bool mqtt_publish_tele() {
+  bool error = false;
   // maximum message length 128 Byte
   String payload = "";
   // BME280
@@ -170,7 +127,7 @@ void mqtt_publish_tele() {
   payload += ",\"TargTemp\":";
   payload += getTargetTemperature();
   payload += "}";
-  publishMQTTMessage(mqttTeleState1, payload.c_str());
+  if (!publishMQTTMessage(mqttTeleState1, payload.c_str())) error = true;
   #endif
 
   // Fan
@@ -180,7 +137,7 @@ void mqtt_publish_tele() {
   payload += ",\"pwm\":";
   payload += getPWMvalue();
   payload += "}";
-  publishMQTTMessage(mqttTeleState2, payload.c_str());
+  if (!publishMQTTMessage(mqttTeleState2, payload.c_str())) error = true;
 
   // WiFi
   payload = "";
@@ -192,7 +149,85 @@ void mqtt_publish_tele() {
   payload += WiFi.SSID();
   payload += ",\"wifiBSSID\":";
   payload += WiFi.BSSIDstr();
+  payload += ",\"IP\":";
+  payload += WiFi.localIP().toString();
   payload += "}";
-  publishMQTTMessage(mqttTeleState3, payload.c_str());
-  #endif
+  if (!publishMQTTMessage(mqttTeleState3, payload.c_str())) error = true;
+
+  // ESP32 stats
+  payload = "";
+  payload += "{\"up\":";
+  payload += String(millis());
+  payload += ",\"heapSize\":";
+  payload += String(ESP.getHeapSize());
+  payload += ",\"heapFree\":";
+  payload += String(ESP.getFreeHeap());
+  payload += ",\"heapMin\":";
+  payload += String(ESP.getMinFreeHeap());
+  payload += ",\"heapMax\":";
+  payload += String(ESP.getMaxAllocHeap());
+  payload += "}";
+  if (!publishMQTTMessage(mqttTeleState4, payload.c_str())) error = true;
+
+  return error;
 }
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  // handle message arrived
+  std::string strPayload(reinterpret_cast<const char *>(payload), length);
+
+  Log.printf("MQTT message arrived [%s] %s\r\n", topic, strPayload.c_str());
+
+  String topicReceived(topic);
+
+  String topicCmndTargetTemp(mqttCmndTargetTemp);
+  String topicCmndActualTemp(mqttCmndActualTemp);
+  String topicCmndFanPWM(mqttCmndFanPWM);
+  #if defined(useOTAUpdate)
+  String topicCmndOTA(mqttCmndOTA);
+  #endif
+  if (topicReceived == topicCmndTargetTemp) {
+    #ifdef useAutomaticTemperatureControl
+    Log.printf("Setting targetTemp via mqtt\r\n");
+    float num_float = ::atof(strPayload.c_str());
+    Log.printf("new targetTemp: %.2f\r\n", num_float);
+    updatePWM_MQTT_Screen_withNewTargetTemperature(num_float, true);
+    #else
+    Log.printf("\"#define useAutomaticTemperatureControl\" is NOT used in config.h Cannot set target temperature. Please set fan pwm.\r\n");
+    updatePWM_MQTT_Screen_withNewTargetTemperature(getTargetTemperature(), true);
+    #endif
+  } else if (topicReceived == topicCmndActualTemp) {
+    #if defined(useAutomaticTemperatureControl) && defined(setActualTemperatureViaMQTT)
+    Log.printf("Setting actualTemp via mqtt\r\n");
+    float num_float = ::atoi(strPayload.c_str());
+    Log.printf("new actualTemp: %.2f\r\n", num_float);
+    updatePWM_MQTT_Screen_withNewActualTemperature(num_float, true);
+    #else
+    Log.printf("\"#define setActualTemperatureViaMQTT\" is NOT used in config.h  Cannot set actual temperature. Please use BME280.\r\n");
+    updatePWM_MQTT_Screen_withNewActualTemperature(getActualTemperature(), true);
+    #endif
+  } else if (topicReceived == topicCmndFanPWM) {
+    #ifndef useAutomaticTemperatureControl
+    Log.printf("Setting fan pwm via mqtt\r\n");
+    int num_int = ::atoi(strPayload.c_str());
+    Log.printf("new fan pwm: %d\r\n", num_int);
+    updateMQTT_Screen_withNewPWMvalue(num_int, true);
+    #else
+    Log.printf("\"#define useAutomaticTemperatureControl\" is used in config.h  Cannot set fan pwm. Please set target temperature.\r\n");
+    updateMQTT_Screen_withNewPWMvalue(getPWMvalue(), true);
+    #endif
+#if defined(useOTAUpdate)
+  } else if (topicReceived == topicCmndOTA) {
+    if (strPayload == "ON") {
+      Log.printf("MQTT command TURN ON OTA received\r\n");
+      ArduinoOTA.begin();
+    } else if (strPayload == "OFF") {
+      Log.printf("MQTT command TURN OFF OTA received\r\n");
+      ArduinoOTA.end();
+    } else {
+      Log.printf("Payload %s not supported\r\n", strPayload.c_str());
+    }
+#endif
+  }
+}
+#endif

@@ -32,7 +32,7 @@ void initTemperatureController(void) {
   #endif
 
   #else
-  log_printf(MY_LOG_FORMAT("    Temperature control is disabled in config.h"));
+  Log.printf("    Temperature control is disabled in config.h\r\n");
   #endif
 }
 
@@ -49,7 +49,7 @@ void setFanPWMbasedOnTemperature(void) {
   int newPWMvalue = 255;
 
   if ((getActualTemperature() == NAN) || (getActualTemperature() <= 0.0)){
-    log_printf(MY_LOG_FORMAT("WARNING: no temperature value available. Cannot do temperature control. Will set PWM fan to 255."));
+    Log.printf("WARNING: no temperature value available. Cannot do temperature control. Will set PWM fan to 255.\r\n");
     newPWMvalue = 255;
   } else if (difftemp <= 0.0) {
     // Temperature is below target temperature. Run fan at minimum speed.
@@ -71,8 +71,8 @@ void setFanPWMbasedOnTemperature(void) {
     newPWMvalue = 255;
   }
   
-  // log_printf(MY_LOG_FORMAT("difftemp = %.2"), difftemp);
-  // log_printf(MY_LOG_FORMAT("newPWMvalue = %d"), newPWMvalue);
+  // Log.printf("difftemp = %.2\r\n", difftemp);
+  // Log.printf("newPWMvalue = %d\r\n", newPWMvalue);
 
   updateMQTT_Screen_withNewPWMvalue(newPWMvalue, false);
   #endif

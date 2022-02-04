@@ -27,25 +27,25 @@ void initBME280(void){
   status_BME280 = bme.begin(BME280_addr, &I2Cone);
 
   if (!status_BME280) {
-    log_printf(MY_LOG_FORMAT("  Could not find a valid BME280 sensor, check wiring!"));
+    Log.printf("  Could not find a valid BME280 sensor, check wiring!\r\n");
   } else {
-    log_printf(MY_LOG_FORMAT("  BME280 sucessfully initialized."));
+    Log.printf("  BME280 sucessfully initialized.\r\n");
     // Calibrate BME280 with actual pressure and given height. Will be used until restart of ESP32
     calibratedPressureAtSeaLevel = (bme.seaLevelForAltitude(heightOverSealevelAtYourLocation, bme.readPressure() / 100.0F));
-    log_printf(MY_LOG_FORMAT("  BME280 was calibrated to %.1f m"), heightOverSealevelAtYourLocation);
+    Log.printf("  BME280 was calibrated to %.1f m\r\n", heightOverSealevelAtYourLocation);
   }
   #else
-  log_printf(MY_LOG_FORMAT("    BME280 is disabled in config.h"));
+  Log.printf("    BME280 is disabled in config.h\r\n");
   #endif
 }
 
 void updateBME280(void){
   #ifdef useTemperatureSensorBME280
   if (!status_BME280){
-    log_printf(MY_LOG_FORMAT("BME280 sensor not initialized, trying again ..."));
+    Log.printf("BME280 sensor not initialized, trying again ...\r\n");
     initBME280();
     if (status_BME280){
-      log_printf(MY_LOG_FORMAT("success!"));
+      Log.printf("success!\r\n");
     } else {
       lastTempSensorValues[0] = NAN;
       #ifndef setActualTemperatureViaMQTT

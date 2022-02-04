@@ -64,11 +64,11 @@ void initTFT(void) {
   draw_screen();
 
   // show the displays resolution
-  log_printf(MY_LOG_FORMAT("  TFT sucessfully initialized."));
-  log_printf(MY_LOG_FORMAT("  tftx = %d, tfty = %d"), tft.width(), tft.height());
+  Log.printf("  TFT sucessfully initialized.\r\n");
+  Log.printf("  tftx = %d, tfty = %d\r\n", tft.width(), tft.height());
 
   #else
-  log_printf(MY_LOG_FORMAT("    TFT is disabled in config.h"));
+  Log.printf("    TFT is disabled in config.h\r\n");
   #endif
 }
 
@@ -241,7 +241,7 @@ void printText(int areaX, int areaY, int areaWidth, int lineNr, const char *str,
   testCanvas.setTextSize(textSize);
   testCanvas.setTextWrap(false);
   testCanvas.getTextBounds("0WIYgy,", 0, 0, &x1, &y1, &w, &h);
-  // log_printf(MY_LOG_FORMAT("  x1 = %d, y1 = %d, w=%d, h=%d"), x1, y1, w, h);
+  // Log.printf("  x1 = %d, y1 = %d, w=%d, h=%d\r\n", x1, y1, w, h);
   int textHeight = h;
   int textAreaHeight = textHeight +2; // additional 2 px as vertical spacing between lines
   // y1=0 only for standardfont, with every other font this value gets negative!
@@ -375,7 +375,7 @@ void draw_screen(void) {
 
     if ((unsigned long)(millis() - startCountdown) > shutdownCountdown*1000 + 15000){
       // if EPS32 is still alive, which means power is still available, then stop countdown and go back to normal mode
-      log_printf(MY_LOG_FORMAT("hm, still alive? Better show mainscreen again"));
+      Log.printf("hm, still alive? Better show mainscreen again\r\n");
       screen = SCREEN_NORMALMODE;
       // clear screen
       tft.fillRect(0, 0, 320, 240, TFT_BLACK);

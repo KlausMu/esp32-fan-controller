@@ -19,7 +19,7 @@ void initPWMfan(void){
   pwmValue = initialPwmValue;
   updateMQTT_Screen_withNewPWMvalue(pwmValue, true);
 
-  log_printf(MY_LOG_FORMAT("  Fan PWM sucessfully initialized."));
+  Log.printf("  Fan PWM sucessfully initialized.\r\n");
 }
 
 void updateFanSpeed(void){

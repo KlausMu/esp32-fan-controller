@@ -43,18 +43,18 @@ void onClick(TS_Point p) {
 
   tsx = 320 - tsxraw;
   tsy = 240 - tsyraw;
-  log_printf(MY_LOG_FORMAT("click %d %d"), tsx, tsy);
+  Log.printf("click %d %d\r\n", tsx, tsy);
 
   if (screen == SCREEN_NORMALMODE) {
     if (pointInRect(valueUpRect, tsx, tsy)) {
-      log_printf(MY_LOG_FORMAT("up button hit"));
+      Log.printf("up button hit\r\n");
       #ifdef useAutomaticTemperatureControl
         updatePWM_MQTT_Screen_withNewTargetTemperature(getTargetTemperature() + 1, true);
       #else
         incFanSpeed();
       #endif
     } else if (pointInRect(valueDownRect, tsx, tsy)) {
-      log_printf(MY_LOG_FORMAT("down button hit"));
+      Log.printf("down button hit\r\n");
       #ifdef useAutomaticTemperatureControl
         updatePWM_MQTT_Screen_withNewTargetTemperature(getTargetTemperature() -1, true);
       #else
@@ -62,7 +62,7 @@ void onClick(TS_Point p) {
       #endif
     #ifdef showShutdownButton
     }  else if (pointInRect(shutdownRect, tsx, tsy)) {
-      log_printf(MY_LOG_FORMAT("shutdown button hit"));
+      Log.printf("shutdown button hit\r\n");
       screen = SCREEN_CONFIRMSHUTDOWN;
       // clear screen
       tft_fillScreen();
@@ -72,7 +72,7 @@ void onClick(TS_Point p) {
   #ifdef showShutdownButton
   } else if (screen == SCREEN_CONFIRMSHUTDOWN) {
     if (pointInRect(confirmShutdownYesRect, tsx, tsy)) {
-      log_printf(MY_LOG_FORMAT("confirm shutdown yes hit"));
+      Log.printf("confirm shutdown yes hit\r\n");
       if (shutdownRaspPi()){
         screen = SCREEN_COUNTDOWN;
         startCountdown = millis();
@@ -83,7 +83,7 @@ void onClick(TS_Point p) {
       tft_fillScreen();
       draw_screen();
     } else if (pointInRect(confirmShutdownNoRect, tsx, tsy)) {
-      log_printf(MY_LOG_FORMAT("confirm shutdown no hit"));
+      Log.printf("confirm shutdown no hit\r\n");
       screen = SCREEN_NORMALMODE;
       // clear screen
       tft_fillScreen();
@@ -109,9 +109,9 @@ void initTFTtouch(void) {
 //  tevent.registerOnTouchDown(onTouch);
 //  tevent.registerOnTouchUp(onUntouch);
 
-  log_printf(MY_LOG_FORMAT("  TFTtouch sucessfully initialized."));
+  Log.printf("  TFTtouch sucessfully initialized.\r\n");
   #else
-  log_printf(MY_LOG_FORMAT("    Touch is disabled in config.h"));
+  Log.printf("    Touch is disabled in config.h\r\n");
   #endif
 }
 

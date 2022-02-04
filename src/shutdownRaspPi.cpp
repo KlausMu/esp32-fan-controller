@@ -9,25 +9,27 @@
 HTTPClient http;
 
 bool shutdownRaspPi(){
-  bool res = false;
-  if (checkWiFiAndReconnectTwice()){
-    HTTPClient http;
-    http.begin(shutdownRequest);
-    http.addHeader("Content-Type", "text/plain");
-    int httpCode = http.POST(shutdownPayload);
-
-    if (httpCode > 0) { //Check for the returning code
-        String payload = http.getString();
-        log_printf(MY_LOG_FORMAT("httpCode = %d"), httpCode);
-        log_printf(MY_LOG_FORMAT("payload = %s"), payload);
-    } else {
-      log_printf(MY_LOG_FORMAT("Cannot shutdown. Error on HTTP request"));
-    }
-    http.end(); //Free the resources
-    res = (httpCode == 200);
-  } else {
-    log_printf(MY_LOG_FORMAT("Cannot shutdown. No WiFi connection."));
+  if (wifiIsDisabled) {
+    Log.printf("Cannot shutdown. No WiFi connection.\r\n");
+    return false;
   }
+
+  bool res = false;
+  HTTPClient http;
+  http.begin(shutdownRequest);
+  http.addHeader("Content-Type", "text/plain");
+  int httpCode = http.POST(shutdownPayload);
+
+  if (httpCode > 0) { //Check for the returning code
+      String payload = http.getString();
+      Log.printf("httpCode = %d\r\n", httpCode);
+      Log.printf("payload = %s\r\n", payload.c_str());
+  } else {
+    Log.printf("Cannot shutdown. Error on HTTP request\r\n");
+  }
+  http.end(); //Free the resources
+  res = (httpCode == 200);
+
   return res;
 }
 #endif

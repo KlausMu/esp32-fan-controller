@@ -89,7 +89,7 @@ static_assert(false, "You cannot have both \"#define setActualTemperatureViaBME2
 // I2C pins used for BME280
 const int I2C_SCL              = GPIO_NUM_32; // GPIO_NUM_22; // GPIO_NUM_17
 const int I2C_SDA              = GPIO_NUM_33; // GPIO_NUM_21; // GPIO_NUM_16
-const int I2C_FREQ             = 100000; // 400000
+const uint32_t I2C_FREQ        = 100000; // 400000
 const uint8_t BME280_addr      = 0x76;
 // in order to calibrate BME280 at startup, provide here the height over sea level in meter at your location
 const float heightOverSealevelAtYourLocation = 112.0;

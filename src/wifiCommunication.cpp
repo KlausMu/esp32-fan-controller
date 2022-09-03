@@ -123,7 +123,11 @@ void wifi_enable(void) {
   wifiIsDisabled = false;
 
   #if defined(ESP32)
+  #if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2)
+  WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+  #else
   WiFi.onEvent(WiFiStationDisconnected, SYSTEM_EVENT_STA_DISCONNECTED);
+  #endif
   #endif
   #if defined(ESP8266)
   static WiFiEventHandler e2;
@@ -135,7 +139,11 @@ void wifi_disable(void){
   wifiIsDisabled = true;
 
   #if defined(ESP32)
+  #if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2)
+  WiFi.removeEvent(ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+  #else
   WiFi.removeEvent(SYSTEM_EVENT_STA_DISCONNECTED);
+  #endif
   #endif
   #if defined(ESP8266)
   // not tested
@@ -152,9 +160,15 @@ void wifi_setup(){
   Event Disconnected: Will automatically try to reconnect here. If reconnection happens, first event connected will be fired, after this event gotIP fires
 */
   #if defined(ESP32)
+  #if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 2)
+  WiFi.onEvent(WiFiStationConnected, ARDUINO_EVENT_WIFI_STA_CONNECTED);
+  WiFi.onEvent(WiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
+  WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);    
+  #else
   WiFi.onEvent(WiFiStationConnected, SYSTEM_EVENT_STA_CONNECTED);
   WiFi.onEvent(WiFiGotIP, SYSTEM_EVENT_STA_GOT_IP);
   WiFi.onEvent(WiFiStationDisconnected, SYSTEM_EVENT_STA_DISCONNECTED);    
+  #endif
   #endif
   #if defined(ESP8266)
   static WiFiEventHandler e1, e2, e3;

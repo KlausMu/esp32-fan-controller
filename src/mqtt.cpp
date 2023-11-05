@@ -36,6 +36,13 @@ PubSubClient mqttClient(mqtt_server, mqtt_server_port, callback, wifiClient);
 
 bool checkMQTTconnection();
 
+void mqtt_setup() {
+  #ifdef useHomeassistant
+  // Set buffer size to allow hass discovery payload
+  mqttClient.setBufferSize(640);
+  #endif
+}
+
 void mqtt_loop(){
   if (!mqttClient.connected()) {
     unsigned long currentMillis = millis();
@@ -109,6 +116,13 @@ bool mqtt_publish_stat_actualTemp() {
 bool mqtt_publish_stat_fanPWM() {
   return publishMQTTMessage(mqttStatFanPWM,     ((String)getPWMvalue()).c_str());
 };
+bool mqtt_publish_hass_discovery() {
+  #if defined(useHomeassistant)
+  return publishMQTTMessage(hassDiscoveryTopic, hassDiscoveryPayload);
+  #else
+  return false;
+  #endif
+}
 
 bool mqtt_publish_tele() {
   bool error = false;

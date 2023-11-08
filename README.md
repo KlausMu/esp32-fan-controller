@@ -9,7 +9,7 @@ This project describes how to use an ESP32 microcontroller for controlling a 4 p
 
 * TFT display for showing status information, different resolutions supported (tested with 320x240 and 160x128)
 * TFT touch display for setting pwm or target temperature
-* optional: integration into home automation software <a href="https://www.openhab.org/">openHAB</a> or <a href="https://www.home-assistant.io/">Home Assistant</a>.
+* optional: integration into home automation software <a href="https://www.home-assistant.io/">Home Assistant (with MQTT discovery)</a> or <a href="https://www.openhab.org/">openHAB</a>.
 
 Even if you don't want to use all of these features, the project can hopefully easily be simplified or extended. With some minor modifications an ESP8266 / D1 mini should be usable.
 

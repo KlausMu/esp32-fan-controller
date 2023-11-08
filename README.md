@@ -28,7 +28,7 @@ In both modes, a TFT panel can optionally be used for showing status information
 
 If you use a TFT touch panel, you can set the PWM value or target temperature via the touch panel (otherwise you have to use MQTT).
 
-<b>For more information please see the <a href="https://github.com/KlausMu/esp32-fan-controller/wiki/03-Examples:-operation-modes-and-breadboards">Wiki: 03 Examples: operation modes and breadboards</a></b>
+<b>For more information please see the <a href="https://github.com/KlausMu/esp32-fan-controller/wiki/03-Examples-%E2%80%90-operation-modes-and-breadboards">Wiki: 03 Examples: operation modes and breadboards</a></b>
 
 ## Wiring diagram for fan and BME280
 ![Wiring diagram fan and BME280](https://github.com/KlausMu/esp32-fan-controller/wiki/images/fritzingESP32_BME280_fan.png)

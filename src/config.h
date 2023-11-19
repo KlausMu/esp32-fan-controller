@@ -30,8 +30,8 @@ First set mode, then go further down in this file to set other options needed fo
 #define useWIFI
 #define useMQTT
 #ifdef useMQTT
-#define useHomeassistant
-#endif			    
+  // #define useHomeassistant
+#endif
 // #define useTFT
   #ifdef useTFT
     // --- choose which display to use. Activate only one. -----------------------------------------------
@@ -222,7 +222,7 @@ const int TOUCH_CS              = GPIO_NUM_14;
 // https://www.az-delivery.de/en/blogs/azdelivery-blog-fur-arduino-und-raspberry-pi/az-touch-mod
 const int TOUCH_IRQ            = GPIO_NUM_27 ;   // touch screen interrupt
 #endif
-const int LED_ON               = LOW;
+const int LED_ON               = HIGH;
 
 // sanity check
 #if defined(useTouch) && !defined(useTFT)

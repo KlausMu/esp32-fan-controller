@@ -36,6 +36,13 @@ PubSubClient mqttClient(mqtt_server, mqtt_server_port, callback, wifiClient);
 
 bool checkMQTTconnection();
 
+void mqtt_setup() {
+  #ifdef useHomeassistant
+  // Set buffer size to allow hass discovery payload
+  mqttClient.setBufferSize(1280);
+  #endif
+}
+
 void mqtt_loop(){
   if (!mqttClient.connected()) {
     unsigned long currentMillis = millis();
@@ -69,6 +76,9 @@ bool checkMQTTconnection() {
         mqttClient.subscribe(mqttCmndFanPWM);
         #if defined(useOTAUpdate)
         mqttClient.subscribe(mqttCmndOTA);
+        #endif
+		#if defined(useHomeassistant)
+        mqttClient.subscribe(hassStatus);
         #endif
       } else {
         Log.printf("  MQTT connection failed (but WiFi is available). Will try later ...\r\n");
@@ -109,6 +119,13 @@ bool mqtt_publish_stat_actualTemp() {
 bool mqtt_publish_stat_fanPWM() {
   return publishMQTTMessage(mqttStatFanPWM,     ((String)getPWMvalue()).c_str());
 };
+bool mqtt_publish_hass_discovery() {
+  #if defined(useHomeassistant)
+  return publishMQTTMessage(hassDiscoveryTopic, hassDiscoveryPayload);
+  #else
+  return false;
+  #endif
+}
 
 bool mqtt_publish_tele() {
   bool error = false;
@@ -186,6 +203,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   #if defined(useOTAUpdate)
   String topicCmndOTA(mqttCmndOTA);
   #endif
+  #if defined(useHomeassistant)
+  String topicHaStatus(hassStatus);
+  #endif
   if (topicReceived == topicCmndTargetTemp) {
     #ifdef useAutomaticTemperatureControl
     Log.printf("Setting targetTemp via mqtt\r\n");
@@ -224,6 +244,22 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else if (strPayload == "OFF") {
       Log.printf("MQTT command TURN OFF OTA received\r\n");
       ArduinoOTA.end();
+    } else {
+      Log.printf("Payload %s not supported\r\n", strPayload.c_str());
+    }
+#endif
+#if defined(useHomeassistant)
+  } else if (topicReceived == hassStatus) {
+    if (strPayload == "online") {
+      Log.printf("MQTT command Rediscovery received\r\n");
+      publishMQTTMessage(hassDiscoveryTopic, hassDiscoveryPayload);
+      publishMQTTMessage(hassFanStateTopic, hassFanstatePayload);
+      publishMQTTMessage(hassDSensor1Topic, hassDSensor1Payload);
+      publishMQTTMessage(hassDSensor2Topic, hassDSensor2Payload);
+      publishMQTTMessage(hassDSensor3Topic, hassDSensor3Payload);
+      publishMQTTMessage(hassDSensor4Topic, hassDSensor4Payload);
+      publishMQTTMessage(hassDSensor5Topic, hassDSensor5Payload);
+      publishMQTTMessage(mqttStatTargetTemp, ((String)getTargetTemperature()).c_str());
     } else {
       Log.printf("Payload %s not supported\r\n", strPayload.c_str());
     }

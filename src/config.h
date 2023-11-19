@@ -29,6 +29,9 @@ First set mode, then go further down in this file to set other options needed fo
 // #define useTemperatureSensorBME280
 #define useWIFI
 #define useMQTT
+#ifdef useMQTT
+  // #define useHomeassistant
+#endif
 // #define useTFT
   #ifdef useTFT
     // --- choose which display to use. Activate only one. -----------------------------------------------
@@ -145,6 +148,23 @@ const char* const mqttCmndFanPWM         = "esp32_fan_controller/cmnd/FANPWM";
 const char* const mqttStatFanPWM         = "esp32_fan_controller/stat/FANPWM";
 #if defined(useOTAUpdate)
 const char* const mqttCmndOTA            = "esp32_fan_controller/cmnd/OTA";
+#endif
+#if defined(useHomeassistant)
+const char* const hassDiscoveryPayload   = "{\"name\":\"Fan_Controller\",\"unique_id\":\"Fan_Controller\",\"icon\":\"mdi:fan\",\"min_temp\":10,\"max_temp\":50,\"temp_step\":1.0,\"current_humidity_topic\":\"esp32_fan_controller/tele/STATE1\",\"current_humidity_template\":\"{{value_json.hum}}\",\"current_temperature_topic\":\"esp32_fan_controller/stat/ACTUALTEMP\", \"temperature_command_topic\":\"esp32_fan_controller/cmnd/TARGETTEMP\",\"temperature_state_topic\":\"esp32_fan_controller/stat/TARGETTEMP\",\"modes\":[\"fan_only\"], \"mode_command_topic\":\"esp32_fan_controller/tele/STATE2\",\"mode_command_template\":\"{{ value_json.mode }}\",\"mode_state_topic\":\"homeassistant/climate/esp32_fan_controller/state\",\"mode_state_template\":\"{{ value_json.mode }}\",\"precision\":1.0,\"device\":{\"identifiers\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"model\":\"esp32_fan_controller\",\"manufacturer\":\"KlausMu\"}}";
+const char* const hassDiscoveryTopic     = "homeassistant/climate/esp32_fan_controller/config";
+const char* const hassStatus             = "homeassistant/status";
+const char* const hassFanStateTopic      = "homeassistant/climate/esp32_fan_controller/state";
+const char* const hassFanstatePayload    = "fan_only";
+const char* const hassDSensor1Topic      = "homeassistant/sensor/esp32_fan_controller/humidity/config";
+const char* const hassDSensor2Topic      = "homeassistant/sensor/esp32_fan_controller/temperature/config";
+const char* const hassDSensor3Topic      = "homeassistant/sensor/esp32_fan_controller/pressure/config";
+const char* const hassDSensor4Topic      = "homeassistant/sensor/esp32_fan_controller/altitude/config";
+const char* const hassDSensor5Topic      = "homeassistant/sensor/esp32_fan_controller/rpm/config";
+const char* const hassDSensor1Payload    = "{\"unit_of_measurement\":\"%\",\"dev_cla\":\"humidity\",\"value_template\":\"{{ value_json.hum }}\",\"state_class\":\"measurement\",\"stat_t\":\"esp32_fan_controller/tele/STATE1\",\"name\":\"Humidity\",\"uniq_id\":\"esp32_humidity\",\"dev\":{\"ids\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"mdl\":\"esp32_fan_controller\",\"mf\":\"KlausMu\"}}";
+const char* const hassDSensor2Payload    = "{\"unit_of_measurement\":\"C\",\"dev_cla\":\"temperature\",\"value_template\":\"{{ value_json.ActTemp }}\",\"state_class\":\"measurement\",\"stat_t\":\"esp32_fan_controller/tele/STATE1\",\"name\":\"Temperature\",\"uniq_id\":\"esp32_temperature\",\"dev\":{\"ids\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"mdl\":\"esp32_fan_controller\",\"mf\":\"KlausMu\"}}";
+const char* const hassDSensor3Payload    = "{\"unit_of_measurement\":\"hPa\",\"dev_cla\":\"atmospheric_pressure\",\"value_template\":\"{{ value_json.pres }}\",\"state_class\":\"measurement\",\"stat_t\":\"esp32_fan_controller/tele/STATE1\",\"name\":\"Pressure\",\"uniq_id\":\"esp32_pressure\",\"dev\":{\"ids\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"mdl\":\"esp32_fan_controller\",\"mf\":\"KlausMu\"}}";
+const char* const hassDSensor4Payload    = "{\"unit_of_measurement\":\"M\",\"dev_cla\":\"distance\",\"value_template\":\"{{ value_json.alt }}\",\"state_class\":\"measurement\",\"stat_t\":\"esp32_fan_controller/tele/STATE1\",\"name\":\"Altitude\",\"uniq_id\":\"esp32_altitude\",\"dev\":{\"ids\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"mdl\":\"esp32_fan_controller\",\"mf\":\"KlausMu\"}}";
+const char* const hassDSensor5Payload    = "{\"unit_of_measurement\":\"RPM\",\"dev_cla\":\"frequency\",\"value_template\":\"{{ value_json.rpm }}\",\"state_class\":\"measurement\",\"stat_t\":\"esp32_fan_controller/tele/STATE2\",\"name\":\"RPM\",\"uniq_id\":\"esp32_RPM\",\"dev\":{\"ids\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"mdl\":\"esp32_fan_controller\",\"mf\":\"KlausMu\"}}";
 #endif
 
 #ifdef useTemperatureSensorBME280

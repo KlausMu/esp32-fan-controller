@@ -29,6 +29,9 @@ First set mode, then go further down in this file to set other options needed fo
 // #define useTemperatureSensorBME280
 #define useWIFI
 #define useMQTT
+#ifdef useMQTT
+  // #define useHomeassistant
+#endif
 // #define useTFT
   #ifdef useTFT
     // --- choose which display to use. Activate only one. -----------------------------------------------
@@ -145,6 +148,10 @@ const char* const mqttCmndFanPWM         = "esp32_fan_controller/cmnd/FANPWM";
 const char* const mqttStatFanPWM         = "esp32_fan_controller/stat/FANPWM";
 #if defined(useOTAUpdate)
 const char* const mqttCmndOTA            = "esp32_fan_controller/cmnd/OTA";
+#endif
+#if defined(useHomeassistant)
+const char* const hassDiscoveryPayload   = "{\"name\":\"esp32_fan_controller\",\"~\": \"esp32_fan_controller\",\"uniq_id\":\"esp32_fan_controller\",\"modes\":[\"fan_only\"],\"current_humidity_topic\":\"~/tele/STATE1\",\"current_humidity_template\":\"{{value_json.hum}}\",\"curr_temp_t\":\"~/stat/ACTUALTEMP\",\"temp_stat_t\":\"~/stat/TARGETTEMP\",\"temp_cmd_t\":\"~/cmnd/TARGETTEMP\",\"temp_unit\":\"C\",\"precision\":1.0,\"temp_step\":1,\"min_temp\":10,\"max_temp\":50,\"o\":{\"name\":\"esp32-fan-controller\",\"support_url\":\"https://github.com/KlausMu/esp32-fan-controller\"}}";
+const char* const hassDiscoveryTopic     = "homeassistant/climate/esp32_fan_controller/config";
 #endif
 
 #ifdef useTemperatureSensorBME280

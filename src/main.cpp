@@ -26,6 +26,9 @@ unsigned long previousMillis1000Cycle = 0;
 unsigned long interval1000Cycle = 1000;
 unsigned long previousMillis10000Cycle = 0;
 unsigned long interval10000Cycle = 10000;
+#ifdef useHomeassistant
+bool hasPublishedDiscovery = false;
+#endif
 
 void setup(){
   Serial.begin(115200);
@@ -58,6 +61,9 @@ void setup(){
   #ifdef useAutomaticTemperatureControl
   initTemperatureController();
   #endif
+  #ifdef useMQTT
+  mqtt_setup();
+  #endif
 
   Log.printf("Settings done. Have fun.\r\n");
 }
@@ -89,6 +95,11 @@ void loop(){
     #endif
     #ifdef useAutomaticTemperatureControl
     setFanPWMbasedOnTemperature();
+    #endif
+    #ifdef useHomeassistant
+      if (!hasPublishedDiscovery) {
+        hasPublishedDiscovery = mqtt_publish_hass_discovery();
+      }
     #endif
     #ifdef useTFT
     draw_screen();

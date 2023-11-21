@@ -39,7 +39,7 @@ bool checkMQTTconnection();
 void mqtt_setup() {
   #ifdef useHomeassistant
   // Set buffer size to allow hass discovery payload
-  mqttClient.setBufferSize(640);
+  mqttClient.setBufferSize(1280);
   #endif
 }
 

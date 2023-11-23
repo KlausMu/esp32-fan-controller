@@ -278,7 +278,24 @@ void printText(int areaX, int areaY, int areaWidth, int lineNr, const char *str,
 }
 #endif
 
+void switchOff_screen(boolean switchOff) {
+  #ifdef useTFT
+  if (switchOff) {
+    Log.printf("  Will switch TFT off.\r\n");
+    digitalWrite(TFT_LED, !LED_ON);
+    // if digitalWrite does not work for your screen, then try: tft_fillScreen();
+  } else {
+    Log.printf("  Will switch TFT on.\r\n");
+    digitalWrite(TFT_LED, LED_ON);
+    // if digitalWrite does not work for your screen, then try: draw_screen();
+  }
+  #endif
+}
+
 void draw_screen(void) {
+  if (getModeIsOff()) {
+    return;
+  }
   #ifdef useTFT
   char buffer[100];
   // don't understand why I have to do this

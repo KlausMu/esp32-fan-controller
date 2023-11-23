@@ -1,5 +1,6 @@
 void initTFT(void);
 void draw_screen(void);
+void switchOff_screen(boolean switchOff);
 #ifdef useTFT
 extern int screen;
 const int SCREEN_NORMALMODE      = 1;

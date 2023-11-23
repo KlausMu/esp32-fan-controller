@@ -17,7 +17,12 @@ bool shutdownRaspPi(){
   bool res = false;
   HTTPClient http;
   http.begin(shutdownRequest);
-  http.addHeader("Content-Type", "text/plain");
+  if (strcmp(shutdownHeaderName1, "") != 0) {
+    http.addHeader(shutdownHeaderName1, shutdownHeaderValue1);
+  }
+  if (strcmp(shutdownHeaderName2, "") != 0) {
+    http.addHeader(shutdownHeaderName2, shutdownHeaderValue2);
+  }
   int httpCode = http.POST(shutdownPayload);
 
   if (httpCode > 0) { //Check for the returning code

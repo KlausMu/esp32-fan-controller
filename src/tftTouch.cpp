@@ -37,6 +37,11 @@ bool pointInRect(const int rect[], int x, int y) {
 }
 
 void onClick(TS_Point p) {
+  if (getModeIsOff()) {
+    // when screen is off, don't react to event, only turn on screen
+    updateMQTT_Screen_withNewMode(false, true);
+    return;
+  }
   // store x and y as raw data
   tsxraw = p.x;
   tsyraw = p.y;

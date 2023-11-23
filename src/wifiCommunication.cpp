@@ -22,6 +22,8 @@ void setAccessPointName() {
       accessPointName = "Your AP 2,4 GHz";
   } else if (BSSID == "66:77:88:99:AA:BB") {
       accessPointName = "Your AP 5 GHz";
+  } else {
+    accessPointName = "unknown";
   }
 }
 

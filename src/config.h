@@ -29,9 +29,6 @@ First set mode, then go further down in this file to set other options needed fo
 // #define useTemperatureSensorBME280
 #define useWIFI
 #define useMQTT
-#ifdef useMQTT
-  // #define useHomeassistant
-#endif
 // #define useTFT
   #ifdef useTFT
     // --- choose which display to use. Activate only one. -----------------------------------------------
@@ -40,6 +37,14 @@ First set mode, then go further down in this file to set other options needed fo
   #endif
 // #define useTouch
 // #define showShutdownButton
+
+// --- Home Assistant MQTT discovery --------------------------------------------------------------------------------------------------------
+/* If you are using Home Assistant, you can activate auto discovery of the climate and sensors.
+   Please also see https://github.com/KlausMu/esp32-fan-controller/wiki/06-Home-Assistant
+   If needed, e.g. if you are using more than one esp32 fan controller, please adjust mqtt settings further down in this file */
+#if defined(useAutomaticTemperatureControl) && defined(setActualTemperatureViaBME280) && defined(useMQTT)
+  #define useHomeassistantMQTTDiscovery
+#endif
 
 // --- fan specs ----------------------------------------------------------------------------------------------------------------------------
 // fanPWM
@@ -140,31 +145,30 @@ https://community.openhab.org/t/itead-sonoff-switches-and-sockets-cheap-esp8266-
 for debugging:
 mosquitto_sub -h localhost -t "esp32_fan_controller/#" -v
 */
-const char* const mqttCmndTargetTemp     = "esp32_fan_controller/cmnd/TARGETTEMP";
-const char* const mqttStatTargetTemp     = "esp32_fan_controller/stat/TARGETTEMP";
-const char* const mqttCmndActualTemp     = "esp32_fan_controller/cmnd/ACTUALTEMP";
-const char* const mqttStatActualTemp     = "esp32_fan_controller/stat/ACTUALTEMP";
-const char* const mqttCmndFanPWM         = "esp32_fan_controller/cmnd/FANPWM";
-const char* const mqttStatFanPWM         = "esp32_fan_controller/stat/FANPWM";
+
+/*
+  ----- IMPORTANT -----
+  ----- MORE THAN ONE INSTANCE OF THE ESP32 FAN CONTROLLER -----
+  If you want to have more than one instance of the esp32 fan controller in your network, every instance has to have it's own unique mqtt topcics (and IDs in HA, if you are using HA)
+  For this, you have to replace every single occurance of "esp32_fan_controller" in this file with something unique, e.g. "esp32_fan_controller_1"
+*/
+
+const char* const mqttCmndTargetTemp        = "esp32_fan_controller/cmnd/TARGETTEMP";
+const char* const mqttStatTargetTemp        = "esp32_fan_controller/stat/TARGETTEMP";
+const char* const mqttCmndActualTemp        = "esp32_fan_controller/cmnd/ACTUALTEMP";
+const char* const mqttStatActualTemp        = "esp32_fan_controller/stat/ACTUALTEMP";
+const char* const mqttCmndFanPWM            = "esp32_fan_controller/cmnd/FANPWM";
+const char* const mqttStatFanPWM            = "esp32_fan_controller/stat/FANPWM";
+// https://www.home-assistant.io/integrations/climate.mqtt/#mode_command_topic
+// https://www.home-assistant.io/integrations/climate.mqtt/#mode_state_topic
+// note: it is not guaranteed that fan stops if pwm is set to 0
+const char* const mqttCmndFanMode           = "esp32_fan_controller/cmnd/MODE";   // can be "off" and "fan_only"
+const char* const mqttStatFanMode           = "esp32_fan_controller/stat/MODE";
+const char* const mqttFanModeOffPayload     = "off";
+const char* const mqttFanModeFanOnlyPayload = "fan_only";
+
 #if defined(useOTAUpdate)
 const char* const mqttCmndOTA            = "esp32_fan_controller/cmnd/OTA";
-#endif
-#if defined(useHomeassistant)
-const char* const hassDiscoveryPayload   = "{\"name\":\"Fan_Controller\",\"unique_id\":\"Fan_Controller\",\"icon\":\"mdi:fan\",\"min_temp\":10,\"max_temp\":50,\"temp_step\":1.0,\"current_humidity_topic\":\"esp32_fan_controller/tele/STATE1\",\"current_humidity_template\":\"{{value_json.hum}}\",\"current_temperature_topic\":\"esp32_fan_controller/stat/ACTUALTEMP\", \"temperature_command_topic\":\"esp32_fan_controller/cmnd/TARGETTEMP\",\"temperature_state_topic\":\"esp32_fan_controller/stat/TARGETTEMP\",\"modes\":[\"fan_only\"], \"mode_command_topic\":\"esp32_fan_controller/tele/STATE2\",\"mode_command_template\":\"{{ value_json.mode }}\",\"mode_state_topic\":\"homeassistant/climate/esp32_fan_controller/state\",\"mode_state_template\":\"{{ value_json.mode }}\",\"precision\":1.0,\"device\":{\"identifiers\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"model\":\"esp32_fan_controller\",\"manufacturer\":\"KlausMu\"}}";
-const char* const hassDiscoveryTopic     = "homeassistant/climate/esp32_fan_controller/config";
-const char* const hassStatus             = "homeassistant/status";
-const char* const hassFanStateTopic      = "homeassistant/climate/esp32_fan_controller/state";
-const char* const hassFanstatePayload    = "fan_only";
-const char* const hassDSensor1Topic      = "homeassistant/sensor/esp32_fan_controller/humidity/config";
-const char* const hassDSensor2Topic      = "homeassistant/sensor/esp32_fan_controller/temperature/config";
-const char* const hassDSensor3Topic      = "homeassistant/sensor/esp32_fan_controller/pressure/config";
-const char* const hassDSensor4Topic      = "homeassistant/sensor/esp32_fan_controller/altitude/config";
-const char* const hassDSensor5Topic      = "homeassistant/sensor/esp32_fan_controller/rpm/config";
-const char* const hassDSensor1Payload    = "{\"unit_of_measurement\":\"%\",\"dev_cla\":\"humidity\",\"value_template\":\"{{ value_json.hum }}\",\"state_class\":\"measurement\",\"stat_t\":\"esp32_fan_controller/tele/STATE1\",\"name\":\"Humidity\",\"uniq_id\":\"esp32_humidity\",\"dev\":{\"ids\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"mdl\":\"esp32_fan_controller\",\"mf\":\"KlausMu\"}}";
-const char* const hassDSensor2Payload    = "{\"unit_of_measurement\":\"C\",\"dev_cla\":\"temperature\",\"value_template\":\"{{ value_json.ActTemp }}\",\"state_class\":\"measurement\",\"stat_t\":\"esp32_fan_controller/tele/STATE1\",\"name\":\"Temperature\",\"uniq_id\":\"esp32_temperature\",\"dev\":{\"ids\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"mdl\":\"esp32_fan_controller\",\"mf\":\"KlausMu\"}}";
-const char* const hassDSensor3Payload    = "{\"unit_of_measurement\":\"hPa\",\"dev_cla\":\"atmospheric_pressure\",\"value_template\":\"{{ value_json.pres }}\",\"state_class\":\"measurement\",\"stat_t\":\"esp32_fan_controller/tele/STATE1\",\"name\":\"Pressure\",\"uniq_id\":\"esp32_pressure\",\"dev\":{\"ids\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"mdl\":\"esp32_fan_controller\",\"mf\":\"KlausMu\"}}";
-const char* const hassDSensor4Payload    = "{\"unit_of_measurement\":\"M\",\"dev_cla\":\"distance\",\"value_template\":\"{{ value_json.alt }}\",\"state_class\":\"measurement\",\"stat_t\":\"esp32_fan_controller/tele/STATE1\",\"name\":\"Altitude\",\"uniq_id\":\"esp32_altitude\",\"dev\":{\"ids\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"mdl\":\"esp32_fan_controller\",\"mf\":\"KlausMu\"}}";
-const char* const hassDSensor5Payload    = "{\"unit_of_measurement\":\"RPM\",\"dev_cla\":\"frequency\",\"value_template\":\"{{ value_json.rpm }}\",\"state_class\":\"measurement\",\"stat_t\":\"esp32_fan_controller/tele/STATE2\",\"name\":\"RPM\",\"uniq_id\":\"esp32_RPM\",\"dev\":{\"ids\":[\"esp32_fan_controller\"],\"name\":\"esp32_fan_controller\",\"mdl\":\"esp32_fan_controller\",\"mf\":\"KlausMu\"}}";
 #endif
 
 #ifdef useTemperatureSensorBME280
@@ -173,6 +177,45 @@ const char* const mqttTeleState1         = "esp32_fan_controller/tele/STATE1";
 const char* const mqttTeleState2         = "esp32_fan_controller/tele/STATE2";
 const char* const mqttTeleState3         = "esp32_fan_controller/tele/STATE3";
 const char* const mqttTeleState4         = "esp32_fan_controller/tele/STATE4";
+
+#if defined(useHomeassistantMQTTDiscovery)
+/* see
+   https://www.home-assistant.io/integrations/mqtt
+   https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
+   https://www.home-assistant.io/integrations/mqtt/#discovery-messages
+   https://www.home-assistant.io/integrations/mqtt/#birth-and-last-will-messages
+*/
+const char* const hassStatusTopic                       = "homeassistant/status";    // can be "online" and "offline"
+const char* const hassStatusOnlinePayload               = "online";
+const char* const hassStatusOfflinePayload              = "offline";
+/*
+   When HA sends status online, we have to resent the discovery. But we have to wait some seconds, otherwise HA will not recognize the mqtt messages.
+   If you have HA running on a weak mini computer, you may have to increase the waiting time. Value is in ms.
+   Remark: the whole discovery process will be done in the following order:
+   discovery, delay(1000), status=online, delay(1000), all inital values
+*/
+const int waitAfterHAisOnlineUntilDiscoveryWillBeSent   = 1000;
+
+const char* const hassClimateDiscoveryTopic             = "homeassistant/climate/esp32_fan_controller/config";
+const char* const hassHumiditySensorDiscoveryTopic      = "homeassistant/sensor/esp32_fan_controller/humidity/config";
+const char* const hassTemperatureSensorDiscoveryTopic   = "homeassistant/sensor/esp32_fan_controller/temperature/config";
+const char* const hassPressureSensorDiscoveryTopic      = "homeassistant/sensor/esp32_fan_controller/pressure/config";
+const char* const hassAltitudeSensorDiscoveryTopic      = "homeassistant/sensor/esp32_fan_controller/altitude/config";
+const char* const hassPWMSensorDiscoveryTopic           = "homeassistant/sensor/esp32_fan_controller/pwm/config";
+const char* const hassRPMSensorDiscoveryTopic           = "homeassistant/sensor/esp32_fan_controller/rpm/config";
+// see https://www.home-assistant.io/integrations/climate.mqtt/
+const char* const hassClimateDiscoveryPayload           = "{\"name\":null,            \"unique_id\":\"esp32_fan_controller\",             \"object_id\":\"esp32_fan_controller\",             \"~\":\"esp32_fan_controller\", \"icon\":\"mdi:fan\", \"min_temp\":10, \"max_temp\":50, \"temp_step\":1, \"precision\":0.1, \"current_humidity_topic\":\"~/tele/STATE1\", \"current_humidity_template\":\"{{value_json.hum | round(0)}}\", \"current_temperature_topic\":\"~/stat/ACTUALTEMP\", \"temperature_command_topic\":\"~/cmnd/TARGETTEMP\", \"temperature_state_topic\":\"~/stat/TARGETTEMP\", \"modes\":[\"off\",\"fan_only\"], \"mode_command_topic\":\"~/cmnd/MODE\", \"mode_state_topic\":\"~/stat/MODE\", \"availability_topic\":\"~/stat/STATUS\", \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
+// see https://www.home-assistant.io/integrations/sensor.mqtt/
+const char* const hassHumiditySensorDiscoveryPayload    = "{\"name\":\"Humidity\",    \"unique_id\":\"esp32_fan_controller_humidity\",    \"object_id\":\"esp32_fan_controller_humidity\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.hum     | round(0) }}\", \"device_class\":\"humidity\",             \"unit_of_measurement\":\"%\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
+const char* const hassTemperatureSensorDiscoveryPayload = "{\"name\":\"Temperature\", \"unique_id\":\"esp32_fan_controller_temperature\", \"object_id\":\"esp32_fan_controller_temperature\", \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.ActTemp | round(1) }}\", \"device_class\":\"temperature\",          \"unit_of_measurement\":\"°C\",  \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
+const char* const hassPressureSensorDiscoveryPayload    = "{\"name\":\"Pressure\",    \"unique_id\":\"esp32_fan_controller_pressure\",    \"object_id\":\"esp32_fan_controller_pressure\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.pres    | round(0) }}\", \"device_class\":\"atmospheric_pressure\", \"unit_of_measurement\":\"hPa\", \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
+const char* const hassAltitudeSensorDiscoveryPayload    = "{\"name\":\"Altitude\",    \"unique_id\":\"esp32_fan_controller_altitude\",    \"object_id\":\"esp32_fan_controller_altitude\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.alt     | round(1) }}\", \"device_class\":\"distance\",             \"unit_of_measurement\":\"m\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
+const char* const hassPWMSensorDiscoveryPayload         = "{\"name\":\"PWM\",         \"unique_id\":\"esp32_fan_controller_PWM\",         \"object_id\":\"esp32_fan_controller_PWM\",         \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.pwm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
+const char* const hassRPMSensorDiscoveryPayload         = "{\"name\":\"RPM\",         \"unique_id\":\"esp32_fan_controller_RPM\",         \"object_id\":\"esp32_fan_controller_RPM\",         \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.rpm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
+
+// see https://www.home-assistant.io/integrations/climate.mqtt/#availability_topic
+const char* const hassFanStatusTopic                    = "esp32_fan_controller/stat/STATUS"; // can be "online" and "offline"
+#endif
 
 #endif
 
@@ -250,9 +293,13 @@ static_assert(false, "You cannot disable both MQTT and touch, otherwise you cann
 */
 
 #ifdef showShutdownButton
-const char* const shutdownRequest  = "http://<IPAddressOfYourOpenHABserver:Port>/rest/items/Shutdown3DPrinter";
-const char* const shutdownPayload  = "ON";
-const int shutdownCountdown        = 30;  // in seconds
+const char* const shutdownRequest      = "http://<IPAddressOfYourHAserver:8123>/api/services/input_button/press";
+const char* const shutdownPayload      = "{\"entity_id\": \"input_button.3dprinter_shutdown\"}";
+const char* const shutdownHeaderName1  = "Authorization";
+const char* const shutdownHeaderValue1 = "Bearer <your bearer token>";
+const char* const shutdownHeaderName2  = "Content-Type";
+const char* const shutdownHeaderValue2 = "application/json";
+const int shutdownCountdown            = 30;  // in seconds
 #endif
 
 // sanity check

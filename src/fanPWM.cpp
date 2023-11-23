@@ -7,7 +7,9 @@
 #include "tft.h"
 
 int pwmValue = 0;
+bool modeIsOff = false;
 void updateMQTT_Screen_withNewPWMvalue(int aPWMvalue, bool force);
+void updateMQTT_Screen_withNewMode(bool aModeIsOff, bool force);
 
 // https://randomnerdtutorials.com/esp32-pwm-arduino-ide/
 void initPWMfan(void){
@@ -18,6 +20,7 @@ void initPWMfan(void){
 
   pwmValue = initialPwmValue;
   updateMQTT_Screen_withNewPWMvalue(pwmValue, true);
+  updateMQTT_Screen_withNewMode(false, true);
 
   Log.printf("  Fan PWM sucessfully initialized.\r\n");
 }
@@ -27,6 +30,8 @@ void updateFanSpeed(void){
 }
 
 void updateMQTT_Screen_withNewPWMvalue(int aPWMvalue, bool force) {
+  // note: it is not guaranteed that fan stops if pwm is set to 0
+  if (modeIsOff) {aPWMvalue = 0;}
   if ((pwmValue != aPWMvalue) || force) {
     pwmValue = aPWMvalue;
     if (pwmValue < 0) {pwmValue = 0;};
@@ -34,8 +39,19 @@ void updateMQTT_Screen_withNewPWMvalue(int aPWMvalue, bool force) {
     updateFanSpeed();
     #ifdef useMQTT
     mqtt_publish_stat_fanPWM();
+    mqtt_publish_tele();
     #endif
     draw_screen();
+  }
+}
+
+void updateMQTT_Screen_withNewMode(bool aModeIsOff, bool force) {
+  if ((modeIsOff != aModeIsOff) || force) {
+    modeIsOff = aModeIsOff;
+    #ifdef useMQTT
+    mqtt_publish_stat_mode();
+    #endif
+    switchOff_screen(modeIsOff);
   }
 }
 
@@ -52,4 +68,8 @@ void decFanSpeed(void){
 
 int getPWMvalue(){
   return pwmValue;
+}
+
+bool getModeIsOff(void) {
+  return modeIsOff;
 }

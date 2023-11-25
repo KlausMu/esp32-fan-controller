@@ -65,17 +65,25 @@ void onClick(TS_Point p) {
       #else
         decFanSpeed();
       #endif
+    }
     #ifdef useShutdownButton
-    }  else if (pointInRect(shutdownRect, tsx, tsy)) {
+    else if (pointInRect(shutdownRect, tsx, tsy)) {
       Log.printf("shutdown button hit\r\n");
       screen = SCREEN_CONFIRMSHUTDOWN;
       // clear screen
       tft_fillScreen();
       draw_screen();
-    #endif
     }
+    #endif
+    #ifdef useStandbyButton
+    else if (pointInRect(shutdownRect, tsx, tsy)) {
+      Log.printf("standby button hit\r\n");
+      updateMQTT_Screen_withNewMode(true, true);
+    }
+    #endif
+  }
   #ifdef useShutdownButton
-  } else if (screen == SCREEN_CONFIRMSHUTDOWN) {
+  else if (screen == SCREEN_CONFIRMSHUTDOWN) {
     if (pointInRect(confirmShutdownYesRect, tsx, tsy)) {
       Log.printf("confirm shutdown yes hit\r\n");
       if (shutdownRaspPi()){
@@ -94,8 +102,8 @@ void onClick(TS_Point p) {
       tft_fillScreen();
       draw_screen();
     }
-  #endif
   }
+  #endif
 }
 #endif
 void initTFTtouch(void) {

@@ -138,8 +138,8 @@ static_assert(false, "You have to use \"#define useAutomaticTemperatureControl\"
         - turn a smart plug off, so that the Raspberry Pi, a 3D printer and the fan controller get powered off
 */
 
-// #define useStandbyButton <-- not yet supported
-#define useShutdownButton
+// #define useStandbyButton
+// #define useShutdownButton
 #if defined(useStandbyButton) && defined(useShutdownButton)
 static_assert(false, "You cannot have both \"#define useStandbyButton\" and \"#define useShutdownButton\"");
 #endif
@@ -420,8 +420,8 @@ static_assert(false, "You cannot disable both MQTT and touch, otherwise you cann
 #if defined(useShutdownButton) && !defined(useWIFI)
 static_assert(false, "You have to use \"#define useWIFI\" when having \"#define useShutdownButton\"");
 #endif
-#if defined(useShutdownButton) && !defined(useTouch)
-static_assert(false, "You have to use \"#define useTouch\" when having \"#define useShutdownButton\"");
+#if (defined(useStandbyButton) || defined(useShutdownButton)) && !defined(useTouch)
+static_assert(false, "You have to use \"#define useTouch\" when having \"#define useStandbyButton\" or \"#define useShutdownButton\"");
 #endif
 
 // --- not used -----------------------------------------------------------------------------------------------------------------------------

@@ -10,6 +10,61 @@
 
 #include <driver/gpio.h>
 #include <esp32-hal-gpio.h>
+
+// --- Begin: choose operation mode -------------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// You have two ways to choose the operation mode:
+// 1. either use one of the presets
+// 2. or define every low level option manually
+// Recommendation is to start with one of the presets.
+// In both cases, after choosing the operation mode, go further down in this file to set additional settings needed for the chosen mode (unused options should be greyed out).
+
+#define usePresets
+
+#if defined(usePresets)
+// --- Way 1 to choose the operation mode: choose one of the presets. All further options are automatically set -----------------------------
+/* These are the presets:
+   Fan mode: speed of the fan will be directly set, either via mqtt, via a touch display or both
+   Climate mode: speed of the fan will be controlled by temperature. If actual temperature is higher than target temperature, fan runs at high speed.
+     Of course, actual temperature can never be lower than the air temperature which is transported by the fan from "outside" to "inside".
+     Actual temperature: the actual temperature can be measured by an BME280 or can be provided via mqtt
+     Target temperature: the target temperature will be tried to reach. The target temmperate can be provided via mqtt, via a touch display or both.
+*/
+// --- Begin: list of presets. Choose exactly one. ---
+//#define fan_controlledByMQTT
+//#define fan_controlledByTouch
+#define fan_controlledByMQTTandTouch
+//#define climate_controlledByBME_targetByMQTT
+//#define climate_controlledByBME_targetByTouch
+//#define climate_controlledByBME_targetByMQTTandTouch
+//#define climate_controlledByMQTT_targetByMQTT
+//#define climate_controlledByMQTT_targetByMQTTandTouch
+// --- End: list of presets --------------------------
+
+// --- based on the preset, automatically define other options --------------
+// --- normally you shouldn't change the next lines -------------------------
+#if defined(climate_controlledByBME_targetByMQTT) || defined(climate_controlledByBME_targetByTouch) || defined(climate_controlledByBME_targetByMQTTandTouch) || defined(climate_controlledByMQTT_targetByMQTT) || defined(climate_controlledByMQTT_targetByMQTTandTouch)
+  #define useAutomaticTemperatureControl
+  #if defined(climate_controlledByBME_targetByMQTT) || defined(climate_controlledByBME_targetByTouch) || defined(climate_controlledByBME_targetByMQTTandTouch)
+    #define setActualTemperatureViaBME280
+    #define useTemperatureSensorBME280
+  #endif
+  #if defined(climate_controlledByMQTT_targetByMQTT) || defined(climate_controlledByMQTT_targetByMQTTandTouch)
+    #define setActualTemperatureViaMQTT
+  #endif
+#endif
+#if defined(fan_controlledByMQTT) || defined(fan_controlledByMQTTandTouch) || defined(climate_controlledByBME_targetByMQTT) || defined(climate_controlledByBME_targetByMQTTandTouch) || defined(climate_controlledByMQTT_targetByMQTT) || defined(climate_controlledByMQTT_targetByMQTTandTouch)
+  #define useWIFI
+  #define useMQTT
+#endif
+#if defined(fan_controlledByTouch) || defined(fan_controlledByMQTTandTouch) || defined(climate_controlledByBME_targetByTouch) || defined(climate_controlledByBME_targetByMQTTandTouch) || defined(climate_controlledByMQTT_targetByMQTTandTouch)
+  #define useTFT
+  #define DRIVER_ILI9341       // e.g. 2.8 inch touch panel, 320x240, used in AZ-Touch
+  #define useTouch
+#endif
+
+#else
+// --- Way 2 to choose the operation mode: manually define every low level option -----------------------------------------------------------
 /*
 Mode 1: pwm mode
 directly setting fan speed via pwm signal
@@ -30,30 +85,61 @@ First set mode, then go further down in this file to set other options needed fo
 
 */
 // --- setting mode -------------------------------------------------------------------------------------------------------------------------
-#define useAutomaticTemperatureControl
+// #define useAutomaticTemperatureControl
   #ifdef useAutomaticTemperatureControl
     // --- choose how to set target temperature. Activate only one. --------------------------------------
     #define setActualTemperatureViaBME280
     // #define setActualTemperatureViaMQTT
   #endif
-#define useTemperatureSensorBME280
+// #define useTemperatureSensorBME280
 #define useWIFI
 #define useMQTT
-#define useTFT
+// #define useTFT
   #ifdef useTFT
     // --- choose which display to use. Activate only one. -----------------------------------------------
-    #define DRIVER_ILI9341       // 2.8 inch touch panel, 320x240, used in AZ-Touch
-    // #define DRIVER_ST7735        // 1.8 inch panel,       160x128
+    // #define DRIVER_ILI9341       // 2.8 inch touch panel, 320x240, used in AZ-Touch
+    #define DRIVER_ST7735        // 1.8 inch panel,       160x128
   #endif
-#define useTouch
-#define showShutdownButton
+// #define useTouch
+#endif
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// --- End: choose operation mode ---------------------------------------------------------------------------------------------------------------------------------
+
+
+
+// --- Begin: additional settings ---------------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Now, as the basic operation mode is chosen, you can define additional settings
 
 // --- Home Assistant MQTT discovery --------------------------------------------------------------------------------------------------------
-/* If you are using Home Assistant, you can activate auto discovery of the climate and sensors.
+/* If you are using Home Assistant, you can activate auto discovery of the climate/fan and sensors.
    Please also see https://github.com/KlausMu/esp32-fan-controller/wiki/06-Home-Assistant
    If needed, e.g. if you are using more than one esp32 fan controller, please adjust mqtt settings further down in this file */
 #if defined(useAutomaticTemperatureControl) && defined(setActualTemperatureViaBME280) && defined(useMQTT)
-  #define useHomeassistantMQTTDiscovery
+#define useHomeassistantMQTTDiscovery
+#endif
+#if defined(useHomeassistantMQTTDiscovery) && (!defined(useAutomaticTemperatureControl) || !defined(setActualTemperatureViaBME280) || !defined(useMQTT))
+static_assert(false, "You have to use \"#define useAutomaticTemperatureControl\" and \"#define setActualTemperatureViaBME280\" and \"#define useMQTT\" when having \"#define useHomeassistantMQTTDiscovery\"");
+#endif
+
+/* --- If you have a touch display, you can show a standbyButton or shutdownButton
+   There are two kind of shutdown buttons:
+   1. set the fan controller to standby
+        - pwm is set to 0. Note: it is not guaranteed that fan stops if pwm is set to 0
+        - display is turned off
+        - you can get your fan controller back to normal mode via an mqtt message or if you touch the display
+   2. Call an external http REST endpoint, which can trigger any action you want.
+      The display of the fan controller simply shows a counter from 30 to 0 and expects something to happen (e.g. power should be turned off by external means).
+      If nothing happens and counter reaches 0, the fan controller goes back to normal operation mode.
+      For example you could define in Home Assistant an input button. In an automation you could:
+        - shutdown a Raspberry Pi
+        - turn a smart plug off, so that the Raspberry Pi, a 3D printer and the fan controller get powered off
+*/
+
+// #define showStandbyButton <-- not yet supported
+#define showShutdownButton
+#if defined(showStandbyButton) && defined(showShutdownButton)
+static_assert(false, "You cannot have both \"#define showStandbyButton\" and \"#define showShutdownButton\"");
 #endif
 
 // --- fan specs ----------------------------------------------------------------------------------------------------------------------------
@@ -336,9 +422,51 @@ static_assert(false, "You have to use \"#define useTouch\" when having \"#define
 // #define A0                   GPIO_NUM_36
 #endif
 
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// --- End: additional settings -----------------------------------------------------------------------------------------------------------------------------------
+
+
 // --- include override settings from seperate file ---------------------------------------------------------------------------------------------------------------
 #if __has_include("config_override.h")
   #include "config_override.h"
+#endif
+
+// --- sanity check: only one preset must be choosen --------------------------------------------------------------------------------------------------------------
+#if (defined(fan_controlledByMQTT)                         && defined(fan_controlledByTouch))                         || \
+    (defined(fan_controlledByMQTT)                         && defined(fan_controlledByMQTTandTouch))                  || \
+    (defined(fan_controlledByMQTT)                         && defined(climate_controlledByBME_targetByMQTT))          || \
+    (defined(fan_controlledByMQTT)                         && defined(climate_controlledByBME_targetByTouch))         || \
+    (defined(fan_controlledByMQTT)                         && defined(climate_controlledByBME_targetByMQTTandTouch))  || \
+    (defined(fan_controlledByMQTT)                         && defined(climate_controlledByMQTT_targetByMQTT))         || \
+    (defined(fan_controlledByMQTT)                         && defined(climate_controlledByMQTT_targetByMQTTandTouch)) || \
+                                                                                                                         \
+    (defined(fan_controlledByTouch)                        && defined(fan_controlledByMQTTandTouch))                  || \
+    (defined(fan_controlledByTouch)                        && defined(climate_controlledByBME_targetByMQTT))          || \
+    (defined(fan_controlledByTouch)                        && defined(climate_controlledByBME_targetByTouch))         || \
+    (defined(fan_controlledByTouch)                        && defined(climate_controlledByBME_targetByMQTTandTouch))  || \
+    (defined(fan_controlledByTouch)                        && defined(climate_controlledByMQTT_targetByMQTT))         || \
+    (defined(fan_controlledByTouch)                        && defined(climate_controlledByMQTT_targetByMQTTandTouch)) || \
+                                                                                                                         \
+    (defined(fan_controlledByMQTTandTouch)                 && defined(climate_controlledByBME_targetByMQTT))          || \
+    (defined(fan_controlledByMQTTandTouch)                 && defined(climate_controlledByBME_targetByTouch))         || \
+    (defined(fan_controlledByMQTTandTouch)                 && defined(climate_controlledByBME_targetByMQTTandTouch))  || \
+    (defined(fan_controlledByMQTTandTouch)                 && defined(climate_controlledByMQTT_targetByMQTT))         || \
+    (defined(fan_controlledByMQTTandTouch)                 && defined(climate_controlledByMQTT_targetByMQTTandTouch)) || \
+                                                                                                                         \
+    (defined(climate_controlledByBME_targetByMQTT)         && defined(climate_controlledByBME_targetByTouch))         || \
+    (defined(climate_controlledByBME_targetByMQTT)         && defined(climate_controlledByBME_targetByMQTTandTouch))  || \
+    (defined(climate_controlledByBME_targetByMQTT)         && defined(climate_controlledByMQTT_targetByMQTT))         || \
+    (defined(climate_controlledByBME_targetByMQTT)         && defined(climate_controlledByMQTT_targetByMQTTandTouch)) || \
+                                                                                                                         \
+    (defined(climate_controlledByBME_targetByTouch)        && defined(climate_controlledByBME_targetByMQTTandTouch))  || \
+    (defined(climate_controlledByBME_targetByTouch)        && defined(climate_controlledByMQTT_targetByMQTT))         || \
+    (defined(climate_controlledByBME_targetByTouch)        && defined(climate_controlledByMQTT_targetByMQTTandTouch)) || \
+                                                                                                                         \
+    (defined(climate_controlledByBME_targetByMQTTandTouch) && defined(climate_controlledByMQTT_targetByMQTT))         || \
+    (defined(climate_controlledByBME_targetByMQTTandTouch) && defined(climate_controlledByMQTT_targetByMQTTandTouch)) || \
+                                                                                                                         \
+    (defined(climate_controlledByMQTT_targetByMQTT)        && defined(climate_controlledByMQTT_targetByMQTTandTouch))
+static_assert(false, "You cannot choose more than one preset at the same time");
 #endif
 
 #endif /*__CONFIG_H__*/

@@ -139,7 +139,7 @@ static_assert(false, "You have to use \"#define useMQTT\" when having \"#define 
 */
 
 // #define useShutdownButton
-#define useStandbyButton
+// #define useStandbyButton
 #if defined(useStandbyButton) && defined(useShutdownButton)
 static_assert(false, "You cannot have both \"#define useStandbyButton\" and \"#define useShutdownButton\"");
 #endif

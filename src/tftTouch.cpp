@@ -65,7 +65,7 @@ void onClick(TS_Point p) {
       #else
         decFanSpeed();
       #endif
-    #ifdef showShutdownButton
+    #ifdef useShutdownButton
     }  else if (pointInRect(shutdownRect, tsx, tsy)) {
       Log.printf("shutdown button hit\r\n");
       screen = SCREEN_CONFIRMSHUTDOWN;
@@ -74,7 +74,7 @@ void onClick(TS_Point p) {
       draw_screen();
     #endif
     }
-  #ifdef showShutdownButton
+  #ifdef useShutdownButton
   } else if (screen == SCREEN_CONFIRMSHUTDOWN) {
     if (pointInRect(confirmShutdownYesRect, tsx, tsy)) {
       Log.printf("confirm shutdown yes hit\r\n");

@@ -5,7 +5,7 @@
 #include "log.h"
 #include "wifiCommunication.h"
 
-#ifdef showShutdownButton
+#ifdef useShutdownButton
 HTTPClient http;
 
 bool shutdownRaspPi(){

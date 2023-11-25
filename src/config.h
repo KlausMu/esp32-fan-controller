@@ -4,7 +4,7 @@
   - keep your credentials secret
   - most likely never have conflicts with new versions of this file
   Any define in CAPITALS can be moved to "config_override.h".
-  All defines having BOTH lowercase and uppercase MUST stay in this file. They define the mode the esp32_fan_controller is running in.
+  All defines having BOTH lowercase and uppercase MUST stay in "config.h". They define the mode the "esp32 fan controller" is running in.
 */
 
 #ifndef __CONFIG_H__
@@ -33,9 +33,9 @@
      Target temperature: the target temperature will be tried to reach. The target temmperate can be provided via mqtt, via a touch display or both.
 */
 // --- Begin: list of presets. Choose exactly one. ---
-//#define fan_controlledByMQTT
+#define fan_controlledByMQTT
 //#define fan_controlledByTouch
-#define fan_controlledByMQTTandTouch
+//#define fan_controlledByMQTTandTouch
 //#define climate_controlledByBME_targetByMQTT
 //#define climate_controlledByBME_targetByTouch
 //#define climate_controlledByBME_targetByMQTTandTouch
@@ -138,10 +138,10 @@ static_assert(false, "You have to use \"#define useAutomaticTemperatureControl\"
         - turn a smart plug off, so that the Raspberry Pi, a 3D printer and the fan controller get powered off
 */
 
-// #define showStandbyButton <-- not yet supported
-#define showShutdownButton
-#if defined(showStandbyButton) && defined(showShutdownButton)
-static_assert(false, "You cannot have both \"#define showStandbyButton\" and \"#define showShutdownButton\"");
+// #define useStandbyButton <-- not yet supported
+#define useShutdownButton
+#if defined(useStandbyButton) && defined(useShutdownButton)
+static_assert(false, "You cannot have both \"#define useStandbyButton\" and \"#define useShutdownButton\"");
 #endif
 
 // --- fan specs ----------------------------------------------------------------------------------------------------------------------------
@@ -230,13 +230,21 @@ static_assert(false, "You cannot use \"#define useOTA_RTOS\" without \"#define u
 #define useTelnetStream
 
 // --- mqtt ---------------------------------------------------------------------------------------------------------------------------------
+/*
+  ----- IMPORTANT -----
+  ----- MORE THAN ONE INSTANCE OF THE ESP32 FAN CONTROLLER -----
+  If you want to have more than one instance of the esp32 fan controller in your network, every instance has to have it's own unique mqtt topcics (and IDs in HA, if you are using HA)
+  For this the define UNIQUE_DEVICE_NAME is used. You can keep it unchanged if you have only one instance in your network. Otherwise you can change it to e.g. "esp32_fan_controller_1"
+*/
+#define UNIQUE_DEVICE_NAME     "esp32_fan_controller"
 
 #ifdef useMQTT
 #define MQTT_SERVER            "IPAddressOfYourBroker" // override it in file "config_override.h"
 #define MQTT_SERVER_PORT       1883                    // override it in file "config_override.h"
 #define MQTT_USER              ""                      // override it in file "config_override.h"
 #define MQTT_PASS              ""                      // override it in file "config_override.h"
-#define MQTT_CLIENTNAME        "esp32_fan_controller"
+#define MQTT_CLIENTNAME        UNIQUE_DEVICE_NAME
+
 /*
 For understanding when "cmnd", "stat" and "tele" is used, have a look at how Tasmota is doing it.
 https://tasmota.github.io/docs/MQTT
@@ -246,39 +254,35 @@ https://www.openhab.org/addons/bindings/mqtt/
 https://community.openhab.org/t/itead-sonoff-switches-and-sockets-cheap-esp8266-wifi-mqtt-hardware/15024
 for debugging:
 mosquitto_sub -h localhost -t "esp32_fan_controller/#" -v
+mosquitto_sub -h localhost -t "homeassistant/climate/esp32_fan_controller/#" -v
+mosquitto_sub -h localhost -t "homeassistant/fan/esp32_fan_controller/#" -v
+mosquitto_sub -h localhost -t "homeassistant/sensor/esp32_fan_controller/#" -v
 */
 
-/*
-  ----- IMPORTANT -----
-  ----- MORE THAN ONE INSTANCE OF THE ESP32 FAN CONTROLLER -----
-  If you want to have more than one instance of the esp32 fan controller in your network, every instance has to have it's own unique mqtt topcics (and IDs in HA, if you are using HA)
-  For this, you have to replace every single occurance of "esp32_fan_controller" in this file with something unique, e.g. "esp32_fan_controller_1"
-*/
-
-#define MQTTCMNDTARGETTEMP        "esp32_fan_controller/cmnd/TARGETTEMP"
-#define MQTTSTATTARGETTEMP        "esp32_fan_controller/stat/TARGETTEMP"
-#define MQTTCMNDACTUALTEMP        "esp32_fan_controller/cmnd/ACTUALTEMP"
-#define MQTTSTATACTUALTEMP        "esp32_fan_controller/stat/ACTUALTEMP"
-#define MQTTCMNDFANPWM            "esp32_fan_controller/cmnd/FANPWM"
-#define MQTTSTATFANPWM            "esp32_fan_controller/stat/FANPWM"
+#define MQTTCMNDTARGETTEMP        UNIQUE_DEVICE_NAME "/cmnd/TARGETTEMP"
+#define MQTTSTATTARGETTEMP        UNIQUE_DEVICE_NAME "/stat/TARGETTEMP"
+#define MQTTCMNDACTUALTEMP        UNIQUE_DEVICE_NAME "/cmnd/ACTUALTEMP"
+#define MQTTSTATACTUALTEMP        UNIQUE_DEVICE_NAME "/stat/ACTUALTEMP"
+#define MQTTCMNDFANPWM            UNIQUE_DEVICE_NAME "/cmnd/FANPWM"
+#define MQTTSTATFANPWM            UNIQUE_DEVICE_NAME "/stat/FANPWM"
 // https://www.home-assistant.io/integrations/climate.mqtt/#mode_command_topic
 // https://www.home-assistant.io/integrations/climate.mqtt/#mode_state_topic
 // note: it is not guaranteed that fan stops if pwm is set to 0
-#define MQTTCMNDFANMODE           "esp32_fan_controller/cmnd/MODE"   // can be "off" and "fan_only"
-#define MQTTSTATFANMODE           "esp32_fan_controller/stat/MODE"
+#define MQTTCMNDFANMODE           UNIQUE_DEVICE_NAME "/cmnd/MODE"   // can be "off" and "fan_only"
+#define MQTTSTATFANMODE           UNIQUE_DEVICE_NAME "/stat/MODE"
 #define MQTTFANMODEOFFPAYLOAD     "off"
 #define MQTTFANMODEFANONLYPAYLOAD "fan_only"
 
 #if defined(useOTAUpdate)
-#define MQTTCMNDOTA            "esp32_fan_controller/cmnd/OTA"
+#define MQTTCMNDOTA            UNIQUE_DEVICE_NAME "/cmnd/OTA"
 #endif
 
 #ifdef useTemperatureSensorBME280
-#define MQTTTELESTATE1         "esp32_fan_controller/tele/STATE1"
+#define MQTTTELESTATE1         UNIQUE_DEVICE_NAME "/tele/STATE1"
 #endif
-#define MQTTTELESTATE2         "esp32_fan_controller/tele/STATE2"
-#define MQTTTELESTATE3         "esp32_fan_controller/tele/STATE3"
-#define MQTTTELESTATE4         "esp32_fan_controller/tele/STATE4"
+#define MQTTTELESTATE2         UNIQUE_DEVICE_NAME "/tele/STATE2"
+#define MQTTTELESTATE3         UNIQUE_DEVICE_NAME "/tele/STATE3"
+#define MQTTTELESTATE4         UNIQUE_DEVICE_NAME "/tele/STATE4"
 
 #if defined(useHomeassistantMQTTDiscovery)
 /* see
@@ -298,25 +302,28 @@ mosquitto_sub -h localhost -t "esp32_fan_controller/#" -v
 */
 #define WAITAFTERHAISONLINEUNTILDISCOVERYWILLBESENT   1000
 
-#define HASSCLIMATEDISCOVERYTOPIC             "homeassistant/climate/esp32_fan_controller/config"
-#define HASSHUMIDITYSENSORDISCOVERYTOPIC      "homeassistant/sensor/esp32_fan_controller/humidity/config"
-#define HASSTEMPERATURESENSORDISCOVERYTOPIC   "homeassistant/sensor/esp32_fan_controller/temperature/config"
-#define HASSPRESSURESENSORDISCOVERYTOPIC      "homeassistant/sensor/esp32_fan_controller/pressure/config"
-#define HASSALTITUDESENSORDISCOVERYTOPIC      "homeassistant/sensor/esp32_fan_controller/altitude/config"
-#define HASSPWMSENSORDISCOVERYTOPIC           "homeassistant/sensor/esp32_fan_controller/pwm/config"
-#define HASSRPMSENSORDISCOVERYTOPIC           "homeassistant/sensor/esp32_fan_controller/rpm/config"
+#define HASSCLIMATEDISCOVERYTOPIC             "homeassistant/climate/" UNIQUE_DEVICE_NAME "/config"
+#define HASSHUMIDITYSENSORDISCOVERYTOPIC      "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/humidity/config"
+#define HASSTEMPERATURESENSORDISCOVERYTOPIC   "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/temperature/config"
+#define HASSPRESSURESENSORDISCOVERYTOPIC      "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/pressure/config"
+#define HASSALTITUDESENSORDISCOVERYTOPIC      "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/altitude/config"
+#define HASSPWMSENSORDISCOVERYTOPIC           "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/pwm/config"
+#define HASSRPMSENSORDISCOVERYTOPIC           "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/rpm/config"
+
+// The define HOMEASSISTANTDEVICE will be reused in all discovery payloads for the climate/fan and the sensors. Everything should be contained in the same device.
+#define HOMEASSISTANTDEVICE                   "\"dev\":{\"name\":\"Fan Controller\", \"model\":\"" UNIQUE_DEVICE_NAME "\", \"identifiers\":[\"" UNIQUE_DEVICE_NAME "\"], \"manufacturer\":\"KlausMu\"}"
 // see https://www.home-assistant.io/integrations/climate.mqtt/
-#define HASSCLIMATEDISCOVERYPAYLOAD           "{\"name\":null,            \"unique_id\":\"esp32_fan_controller\",             \"object_id\":\"esp32_fan_controller\",             \"~\":\"esp32_fan_controller\", \"icon\":\"mdi:fan\", \"min_temp\":10, \"max_temp\":50, \"temp_step\":1, \"precision\":0.1, \"current_humidity_topic\":\"~/tele/STATE1\", \"current_humidity_template\":\"{{value_json.hum | round(0)}}\", \"current_temperature_topic\":\"~/stat/ACTUALTEMP\", \"temperature_command_topic\":\"~/cmnd/TARGETTEMP\", \"temperature_state_topic\":\"~/stat/TARGETTEMP\", \"modes\":[\"off\",\"fan_only\"], \"mode_command_topic\":\"~/cmnd/MODE\", \"mode_state_topic\":\"~/stat/MODE\", \"availability_topic\":\"~/stat/STATUS\", \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
 // see https://www.home-assistant.io/integrations/sensor.mqtt/
-#define HASSHUMIDITYSENSORDISCOVERYPAYLOAD    "{\"name\":\"Humidity\",    \"unique_id\":\"esp32_fan_controller_humidity\",    \"object_id\":\"esp32_fan_controller_humidity\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.hum     | round(0) }}\", \"device_class\":\"humidity\",             \"unit_of_measurement\":\"%\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
-#define HASSTEMPERATURESENSORDISCOVERYPAYLOAD "{\"name\":\"Temperature\", \"unique_id\":\"esp32_fan_controller_temperature\", \"object_id\":\"esp32_fan_controller_temperature\", \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.ActTemp | round(1) }}\", \"device_class\":\"temperature\",          \"unit_of_measurement\":\"°C\",  \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
-#define HASSPRESSURESENSORDISCOVERYPAYLOAD    "{\"name\":\"Pressure\",    \"unique_id\":\"esp32_fan_controller_pressure\",    \"object_id\":\"esp32_fan_controller_pressure\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.pres    | round(0) }}\", \"device_class\":\"atmospheric_pressure\", \"unit_of_measurement\":\"hPa\", \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
-#define HASSALTITUDESENSORDISCOVERYPAYLOAD    "{\"name\":\"Altitude\",    \"unique_id\":\"esp32_fan_controller_altitude\",    \"object_id\":\"esp32_fan_controller_altitude\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.alt     | round(1) }}\", \"device_class\":\"distance\",             \"unit_of_measurement\":\"m\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
-#define HASSPWMSENSORDISCOVERYPAYLOAD         "{\"name\":\"PWM\",         \"unique_id\":\"esp32_fan_controller_PWM\",         \"object_id\":\"esp32_fan_controller_PWM\",         \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.pwm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
-#define HASSRPMSENSORDISCOVERYPAYLOAD         "{\"name\":\"RPM\",         \"unique_id\":\"esp32_fan_controller_RPM\",         \"object_id\":\"esp32_fan_controller_RPM\",         \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.rpm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
+#define HASSCLIMATEDISCOVERYPAYLOAD           "{\"name\":null,            \"unique_id\":\"" UNIQUE_DEVICE_NAME "\",             \"object_id\":\"" UNIQUE_DEVICE_NAME "\",             \"~\":\"" UNIQUE_DEVICE_NAME "\", \"icon\":\"mdi:fan\", \"min_temp\":10, \"max_temp\":50, \"temp_step\":1, \"precision\":0.1, \"current_humidity_topic\":\"~/tele/STATE1\", \"current_humidity_template\":\"{{value_json.hum | round(0)}}\", \"current_temperature_topic\":\"~/stat/ACTUALTEMP\", \"temperature_command_topic\":\"~/cmnd/TARGETTEMP\", \"temperature_state_topic\":\"~/stat/TARGETTEMP\", \"modes\":[\"off\",\"fan_only\"], \"mode_command_topic\":\"~/cmnd/MODE\", \"mode_state_topic\":\"~/stat/MODE\", \"availability_topic\":\"~/stat/STATUS\", " HOMEASSISTANTDEVICE "}"
+#define HASSHUMIDITYSENSORDISCOVERYPAYLOAD    "{\"name\":\"Humidity\",    \"unique_id\":\"" UNIQUE_DEVICE_NAME "_humidity\",    \"object_id\":\"" UNIQUE_DEVICE_NAME "_humidity\",    \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.hum     | round(0) }}\", \"device_class\":\"humidity\",             \"unit_of_measurement\":\"%\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
+#define HASSTEMPERATURESENSORDISCOVERYPAYLOAD "{\"name\":\"Temperature\", \"unique_id\":\"" UNIQUE_DEVICE_NAME "_temperature\", \"object_id\":\"" UNIQUE_DEVICE_NAME "_temperature\", \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.ActTemp | round(1) }}\", \"device_class\":\"temperature\",          \"unit_of_measurement\":\"°C\",  \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
+#define HASSPRESSURESENSORDISCOVERYPAYLOAD    "{\"name\":\"Pressure\",    \"unique_id\":\"" UNIQUE_DEVICE_NAME "_pressure\",    \"object_id\":\"" UNIQUE_DEVICE_NAME "_pressure\",    \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.pres    | round(0) }}\", \"device_class\":\"atmospheric_pressure\", \"unit_of_measurement\":\"hPa\", \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
+#define HASSALTITUDESENSORDISCOVERYPAYLOAD    "{\"name\":\"Altitude\",    \"unique_id\":\"" UNIQUE_DEVICE_NAME "_altitude\",    \"object_id\":\"" UNIQUE_DEVICE_NAME "_altitude\",    \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.alt     | round(1) }}\", \"device_class\":\"distance\",             \"unit_of_measurement\":\"m\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
+#define HASSPWMSENSORDISCOVERYPAYLOAD         "{\"name\":\"PWM\",         \"unique_id\":\"" UNIQUE_DEVICE_NAME "_PWM\",         \"object_id\":\"" UNIQUE_DEVICE_NAME "_PWM\",         \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.pwm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
+#define HASSRPMSENSORDISCOVERYPAYLOAD         "{\"name\":\"RPM\",         \"unique_id\":\"" UNIQUE_DEVICE_NAME "_RPM\",         \"object_id\":\"" UNIQUE_DEVICE_NAME "_RPM\",         \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.rpm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
 
 // see https://www.home-assistant.io/integrations/climate.mqtt/#availability_topic
-#define HASSFANSTATUSTOPIC                    "esp32_fan_controller/stat/STATUS" // can be "online" and "offline"
+#define HASSFANSTATUSTOPIC                    UNIQUE_DEVICE_NAME "/stat/STATUS" // can be "online" and "offline"
 #endif
 
 #endif
@@ -399,7 +406,7 @@ static_assert(false, "You cannot disable both MQTT and touch, otherwise you cann
    ESP32 can actually power off when countdown is e.g. at 5 or even less than 0 ...
 */
 
-#ifdef showShutdownButton
+#ifdef useShutdownButton
 #define SHUTDOWNREQUEST                "http://<IPAddressOfYourHAserver:8123>/api/services/input_button/press" // override it in file "config_override.h"
 #define SHUTDOWNPAYLOAD                "{\"entity_id\": \"input_button.3dprinter_shutdown\"}"                  // override it in file "config_override.h"
 #define SHUTDOWNHEADERNAME1            "Authorization"                                                         // override it in file "config_override.h"
@@ -410,11 +417,11 @@ static_assert(false, "You cannot disable both MQTT and touch, otherwise you cann
 #endif
 
 // sanity check
-#if defined(showShutdownButton) && !defined(useWIFI)
-static_assert(false, "You have to use \"#define useWIFI\" when having \"#define showShutdownButton\"");
+#if defined(useShutdownButton) && !defined(useWIFI)
+static_assert(false, "You have to use \"#define useWIFI\" when having \"#define useShutdownButton\"");
 #endif
-#if defined(showShutdownButton) && !defined(useTouch)
-static_assert(false, "You have to use \"#define useTouch\" when having \"#define showShutdownButton\"");
+#if defined(useShutdownButton) && !defined(useTouch)
+static_assert(false, "You have to use \"#define useTouch\" when having \"#define useShutdownButton\"");
 #endif
 
 // --- not used -----------------------------------------------------------------------------------------------------------------------------

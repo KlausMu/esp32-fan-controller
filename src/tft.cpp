@@ -84,7 +84,7 @@ int16_t getRelativeY(int16_t yBasedOnTFTwithScreenHeight240px) {
 // rect: x, y, width, heigth
 int valueUpRect[4];
 int valueDownRect[4];
-#ifdef showShutdownButton
+#ifdef useShutdownButton
 int shutdownRect[4];
 int confirmShutdownYesRect[4];
 int confirmShutdownNoRect[4];
@@ -101,7 +101,7 @@ int tempAreaLeft; int tempAreaTop; int tempAreaWidth;
 int fanAreaLeft; int fanAreaTop; int fanAreaWidth;
 int ambientAreaLeft; int ambientAreaTop; int ambientAreaWidth;
 
-#ifdef showShutdownButton
+#ifdef useShutdownButton
 int shutdownWidthAbsolute;
 int shutdownHeightAbsolute;
 #endif
@@ -122,13 +122,13 @@ void calcDimensionsOfElements(void) {
 
   int valueUpDownWidthAbsolute  = 80;
   int valueUpDownHeightAbsolute = 55;
-  #ifdef showShutdownButton
+  #ifdef useShutdownButton
       shutdownWidthAbsolute     = 40;
       shutdownHeightAbsolute    = 40;
   #endif
   int valueUpRectTop;
   int valueDownRectTop;
-  #ifdef showShutdownButton
+  #ifdef useShutdownButton
   int shutdownRectTop;
   #endif
 
@@ -141,7 +141,7 @@ void calcDimensionsOfElements(void) {
   valueUpRectTop   = fanAreaTop;
   ambientAreaTop = getRelativeY(marginTopAbsolute+areaHeightAbsolute+marginTopAbsolute+areaHeightAbsolute+marginTopAbsolute );
   valueDownRectTop = ambientAreaTop;
-    #ifdef showShutdownButton
+    #ifdef useShutdownButton
     tempAreaWidth     = getRelativeX(320-marginLeftAbsolute - shutdownWidthAbsolute-marginLeftAbsolute);    // screen - marginleft - [Area] - 40 shutdown - marginright
     #else
     tempAreaWidth     = getRelativeX(320-marginLeftAbsolute -    0);                                        // screen - marginleft - [Area]               - marginright
@@ -153,7 +153,7 @@ void calcDimensionsOfElements(void) {
     fanAreaWidth      = getRelativeX(320-marginLeftAbsolute -    0);                                        // screen - marginleft - [Area]               - marginright
     ambientAreaWidth = getRelativeX(320-marginLeftAbsolute -    0);
     #endif
-    #ifdef showShutdownButton
+    #ifdef useShutdownButton
     shutdownRectTop   = getRelativeY(marginTopAbsolute);
     #endif
   #else
@@ -168,7 +168,7 @@ void calcDimensionsOfElements(void) {
     fanAreaWidth      = getRelativeX(320-marginLeftAbsolute -    0);                                        // screen - marginleft - [Area]               - marginright
     ambientAreaWidth = getRelativeX(320-marginLeftAbsolute -    0);
     #endif
-    #ifdef showShutdownButton
+    #ifdef useShutdownButton
     shutdownRectTop   = getRelativeY(240-shutdownHeightAbsolute-marginTopAbsolute);
     #endif
   #endif
@@ -191,7 +191,7 @@ void calcDimensionsOfElements(void) {
   plusMinusVerticalLineMarginTop    = (valueUpRect[3] - plusMinusVerticalLineLength) / 2; // 9
   plusMinusVerticalLineMarginLeft   = valueUpRect[2] / 2; // 40
 
-  #ifdef showShutdownButton
+  #ifdef useShutdownButton
   shutdownRect[0] = getRelativeX(320-shutdownWidthAbsolute-marginLeftAbsolute);
   shutdownRect[1] = shutdownRectTop;
   shutdownRect[2] = getRelativeX(shutdownWidthAbsolute);
@@ -357,7 +357,7 @@ void draw_screen(void) {
     tft.drawLine(valueDownRect[0]+plusMinusHorizontalLineMarginLeft, valueDownRect[1]+plusMinusHorizontalLineMarginTop+1, valueDownRect[0]+plusMinusHorizontalLineMarginLeft + plusMinusHorizontalLineLength, valueDownRect[1]+plusMinusHorizontalLineMarginTop+1, TFT_BLACK);
     #endif
 
-    #ifdef showShutdownButton
+    #ifdef useShutdownButton
     // shutdown button
     // square, without round corners
     // tft.fillRect(shutdownRect[0],   shutdownRect[1],    shutdownRect[2],   shutdownRect[3],   TFT_RED);
@@ -370,7 +370,7 @@ void draw_screen(void) {
     tft.drawLine(  shutdownRect[0]+getRelativeX(shutdownWidthAbsolute/2),   shutdownRect[1]+getRelativeY(shutdownHeightAbsolute/4), shutdownRect[0]+getRelativeX(shutdownWidthAbsolute/2),   shutdownRect[1]+getRelativeY(shutdownHeightAbsolute*3/4), TFT_WHITE);
     tft.drawLine(  shutdownRect[0]+getRelativeX(shutdownWidthAbsolute/2)+1, shutdownRect[1]+getRelativeY(shutdownHeightAbsolute/4), shutdownRect[0]+getRelativeX(shutdownWidthAbsolute/2)+1, shutdownRect[1]+getRelativeY(shutdownHeightAbsolute*3/4), TFT_WHITE);
     #endif
-  #ifdef showShutdownButton
+  #ifdef useShutdownButton
   } else if (screen == SCREEN_CONFIRMSHUTDOWN) {
     printText(getRelativeX(44), getRelativeY(50), getRelativeX(200), 0, "Please confirm shutdown",      textSizeOffset + 1, myFont, false);
 

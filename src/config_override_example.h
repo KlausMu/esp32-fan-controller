@@ -1,7 +1,7 @@
 /*
 Copy this file to "config_override.h"
 Any defines from "config.h" in CAPITALS can be overridden in "config_override.h".
-All defines having BOTH lowercase and uppercase MUST stay in "config.h". They define the mode the esp32_fan_controller is running in.
+All defines having BOTH lowercase and uppercase MUST stay in "config.h". They define the mode the "esp32 fan controller" is running in.
 If you add additional overrides here, you have to
   1. first add #undef
   2. add new #define
@@ -34,7 +34,7 @@ If you add additional overrides here, you have to
 #define MQTT_PASS            "myPassword or empty"   // override here
 #endif
 
-#ifdef showShutdownButton
+#ifdef useShutdownButton
 #define SHUTDOWNREQUEST      "http://<IPAddressOfYourHAserver:8123>/api/services/input_button/press" // override here
 #define SHUTDOWNPAYLOAD      "{\"entity_id\": \"input_button.3dprinter_shutdown\"}"                  // override here
 #define SHUTDOWNHEADERNAME1  "Authorization"                                                         // override here

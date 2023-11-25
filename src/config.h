@@ -117,11 +117,11 @@ First set mode, then go further down in this file to set other options needed fo
 /* If you are using Home Assistant, you can activate auto discovery of the climate/fan and sensors.
    Please also see https://github.com/KlausMu/esp32-fan-controller/wiki/06-Home-Assistant
    If needed, e.g. if you are using more than one esp32 fan controller, please adjust mqtt settings further down in this file */
-#if defined(useAutomaticTemperatureControl) && defined(setActualTemperatureViaBME280) && defined(useMQTT)
+#if defined(useMQTT)
 #define useHomeassistantMQTTDiscovery
 #endif
-#if defined(useHomeassistantMQTTDiscovery) && (!defined(useAutomaticTemperatureControl) || !defined(setActualTemperatureViaBME280) || !defined(useMQTT))
-static_assert(false, "You have to use \"#define useAutomaticTemperatureControl\" and \"#define setActualTemperatureViaBME280\" and \"#define useMQTT\" when having \"#define useHomeassistantMQTTDiscovery\"");
+#if defined(useHomeassistantMQTTDiscovery) && !defined(useMQTT)
+static_assert(false, "You have to use \"#define useMQTT\" when having \"#define useHomeassistantMQTTDiscovery\"");
 #endif
 
 /* --- If you have a touch display, you can show a standbyButton or shutdownButton
@@ -138,8 +138,8 @@ static_assert(false, "You have to use \"#define useAutomaticTemperatureControl\"
         - turn a smart plug off, so that the Raspberry Pi, a 3D printer and the fan controller get powered off
 */
 
-// #define useStandbyButton
 // #define useShutdownButton
+// #define useStandbyButton
 #if defined(useStandbyButton) && defined(useShutdownButton)
 static_assert(false, "You cannot have both \"#define useStandbyButton\" and \"#define useShutdownButton\"");
 #endif
@@ -233,16 +233,18 @@ static_assert(false, "You cannot use \"#define useOTA_RTOS\" without \"#define u
 /*
   ----- IMPORTANT -----
   ----- MORE THAN ONE INSTANCE OF THE ESP32 FAN CONTROLLER -----
-  If you want to have more than one instance of the esp32 fan controller in your network, every instance has to have it's own unique mqtt topcics (and IDs in HA, if you are using HA)
-  For this the define UNIQUE_DEVICE_NAME is used. You can keep it unchanged if you have only one instance in your network. Otherwise you can change it to e.g. "esp32_fan_controller_1"
+  If you want to have more than one instance of the esp32 fan controller in your network, every instance has to have it's own unique mqtt topcics (and IDs and name in HA, if you are using HA)
+  For this the define UNIQUE_DEVICE_FRIENDLYNAME and UNIQUE_DEVICE_NAME is used. You can keep it unchanged if you have only one instance in your network.
+  Otherwise you can change it to e.g. "Fan Controller 2" and "esp32_fan_controller_2"
 */
-#define UNIQUE_DEVICE_NAME     "esp32_fan_controller"
-
 #ifdef useMQTT
-#define MQTT_SERVER            "IPAddressOfYourBroker" // override it in file "config_override.h"
-#define MQTT_SERVER_PORT       1883                    // override it in file "config_override.h"
-#define MQTT_USER              ""                      // override it in file "config_override.h"
-#define MQTT_PASS              ""                      // override it in file "config_override.h"
+#define UNIQUE_DEVICE_FRIENDLYNAME "Fan Controller"       // override it in file "config_override.h"
+#define UNIQUE_DEVICE_NAME         "esp32_fan_controller" // override it in file "config_override.h"
+
+#define MQTT_SERVER            "IPAddressOfYourBroker"    // override it in file "config_override.h"
+#define MQTT_SERVER_PORT       1883                       // override it in file "config_override.h"
+#define MQTT_USER              ""                         // override it in file "config_override.h"
+#define MQTT_PASS              ""                         // override it in file "config_override.h"
 #define MQTT_CLIENTNAME        UNIQUE_DEVICE_NAME
 
 /*
@@ -301,39 +303,48 @@ mosquitto_sub -h localhost -t "homeassistant/sensor/esp32_fan_controller/#" -v
    discovery, delay(1000), status=online, delay(1000), all inital values
 */
 #define WAITAFTERHAISONLINEUNTILDISCOVERYWILLBESENT   1000
-
-#define HASSCLIMATEDISCOVERYTOPIC             "homeassistant/climate/" UNIQUE_DEVICE_NAME "/config"
-#ifdef useTemperatureSensorBME280
-#define HASSHUMIDITYSENSORDISCOVERYTOPIC      "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/humidity/config"
-#define HASSTEMPERATURESENSORDISCOVERYTOPIC   "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/temperature/config"
-#define HASSPRESSURESENSORDISCOVERYTOPIC      "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/pressure/config"
-#define HASSALTITUDESENSORDISCOVERYTOPIC      "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/altitude/config"
-#endif
-#define HASSPWMSENSORDISCOVERYTOPIC           "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/pwm/config"
-#define HASSRPMSENSORDISCOVERYTOPIC           "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/rpm/config"
+#define HASSFANSTATUSTOPIC                    UNIQUE_DEVICE_NAME "/stat/STATUS" // can be "online" and "offline"
 
 // The define HOMEASSISTANTDEVICE will be reused in all discovery payloads for the climate/fan and the sensors. Everything should be contained in the same device.
-#define HOMEASSISTANTDEVICE                   "\"dev\":{\"name\":\"Fan Controller\", \"model\":\"" UNIQUE_DEVICE_NAME "\", \"identifiers\":[\"" UNIQUE_DEVICE_NAME "\"], \"manufacturer\":\"KlausMu\"}"
+#define HOMEASSISTANTDEVICE                   "\"dev\":{\"name\":\"" UNIQUE_DEVICE_FRIENDLYNAME "\", \"model\":\"" UNIQUE_DEVICE_NAME "\", \"identifiers\":[\"" UNIQUE_DEVICE_NAME "\"], \"manufacturer\":\"KlausMu\"}"
+
+// climate
 // see https://www.home-assistant.io/integrations/climate.mqtt/
+#ifdef useAutomaticTemperatureControl
+#define HASSCLIMATEDISCOVERYTOPIC             "homeassistant/climate/" UNIQUE_DEVICE_NAME "/config"
 #ifdef useTemperatureSensorBME280
 #define CURRENTHUMIDITYINCLIMATE              "\"current_humidity_topic\":\"~/tele/STATE1\", \"current_humidity_template\":\"{{value_json.hum | round(0)}}\", "
 #else
 #define CURRENTHUMIDITYINCLIMATE
 #endif
 #define HASSCLIMATEDISCOVERYPAYLOAD           "{\"name\":null,            \"unique_id\":\"" UNIQUE_DEVICE_NAME "\",             \"object_id\":\"" UNIQUE_DEVICE_NAME "\",             \"~\":\"" UNIQUE_DEVICE_NAME "\", \"icon\":\"mdi:fan\", \"min_temp\":10, \"max_temp\":50, \"temp_step\":1, \"precision\":0.1, " CURRENTHUMIDITYINCLIMATE "\"current_temperature_topic\":\"~/stat/ACTUALTEMP\", \"temperature_command_topic\":\"~/cmnd/TARGETTEMP\", \"temperature_state_topic\":\"~/stat/TARGETTEMP\", \"modes\":[\"off\",\"fan_only\"], \"mode_command_topic\":\"~/cmnd/MODE\", \"mode_state_topic\":\"~/stat/MODE\", \"availability_topic\":\"~/stat/STATUS\", " HOMEASSISTANTDEVICE "}"
+#endif
 
+// fan
+// see https://www.home-assistant.io/integrations/fan.mqtt/
+#ifndef useAutomaticTemperatureControl
+#define HASSFANDISCOVERYTOPIC                 "homeassistant/fan/" UNIQUE_DEVICE_NAME "/config"
+#define HASSFANDISCOVERYPAYLOAD               "{\"name\":null,            \"unique_id\":\"" UNIQUE_DEVICE_NAME "\",             \"object_id\":\"" UNIQUE_DEVICE_NAME "\",             \"~\":\"" UNIQUE_DEVICE_NAME "\", \"icon\":\"mdi:fan\", \"command_topic\":\"~/cmnd/MODE\", \"state_topic\":\"~/stat/MODE\", \"payload_on\": \"fan_only\", \"payload_off\": \"off\", \"percentage_state_topic\": \"~/stat/FANPWM\", \"percentage_command_topic\": \"~/cmnd/FANPWM\", \"speed_range_min\": 1, \"speed_range_max\": 255,\"availability_topic\":\"~/stat/STATUS\", " HOMEASSISTANTDEVICE "}"
+#endif
+
+// sensors
 // see https://www.home-assistant.io/integrations/sensor.mqtt/
 #ifdef useTemperatureSensorBME280
+#define HASSHUMIDITYSENSORDISCOVERYTOPIC      "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/humidity/config"
 #define HASSHUMIDITYSENSORDISCOVERYPAYLOAD    "{\"name\":\"Humidity\",    \"unique_id\":\"" UNIQUE_DEVICE_NAME "_humidity\",    \"object_id\":\"" UNIQUE_DEVICE_NAME "_humidity\",    \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.hum     | round(0) }}\", \"device_class\":\"humidity\",             \"unit_of_measurement\":\"%\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
+#define HASSTEMPERATURESENSORDISCOVERYTOPIC   "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/temperature/config"
 #define HASSTEMPERATURESENSORDISCOVERYPAYLOAD "{\"name\":\"Temperature\", \"unique_id\":\"" UNIQUE_DEVICE_NAME "_temperature\", \"object_id\":\"" UNIQUE_DEVICE_NAME "_temperature\", \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.ActTemp | round(1) }}\", \"device_class\":\"temperature\",          \"unit_of_measurement\":\"°C\",  \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
+#define HASSPRESSURESENSORDISCOVERYTOPIC      "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/pressure/config"
 #define HASSPRESSURESENSORDISCOVERYPAYLOAD    "{\"name\":\"Pressure\",    \"unique_id\":\"" UNIQUE_DEVICE_NAME "_pressure\",    \"object_id\":\"" UNIQUE_DEVICE_NAME "_pressure\",    \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.pres    | round(0) }}\", \"device_class\":\"atmospheric_pressure\", \"unit_of_measurement\":\"hPa\", \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
+#define HASSALTITUDESENSORDISCOVERYTOPIC      "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/altitude/config"
 #define HASSALTITUDESENSORDISCOVERYPAYLOAD    "{\"name\":\"Altitude\",    \"unique_id\":\"" UNIQUE_DEVICE_NAME "_altitude\",    \"object_id\":\"" UNIQUE_DEVICE_NAME "_altitude\",    \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.alt     | round(1) }}\", \"device_class\":\"distance\",             \"unit_of_measurement\":\"m\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
 #endif
+#define HASSPWMSENSORDISCOVERYTOPIC           "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/pwm/config"
 #define HASSPWMSENSORDISCOVERYPAYLOAD         "{\"name\":\"PWM\",         \"unique_id\":\"" UNIQUE_DEVICE_NAME "_PWM\",         \"object_id\":\"" UNIQUE_DEVICE_NAME "_PWM\",         \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.pwm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
+#define HASSRPMSENSORDISCOVERYTOPIC           "homeassistant/sensor/" UNIQUE_DEVICE_NAME "/rpm/config"
 #define HASSRPMSENSORDISCOVERYPAYLOAD         "{\"name\":\"RPM\",         \"unique_id\":\"" UNIQUE_DEVICE_NAME "_RPM\",         \"object_id\":\"" UNIQUE_DEVICE_NAME "_RPM\",         \"~\":\"" UNIQUE_DEVICE_NAME "\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.rpm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             " HOMEASSISTANTDEVICE "}"
 
 // see https://www.home-assistant.io/integrations/climate.mqtt/#availability_topic
-#define HASSFANSTATUSTOPIC                    UNIQUE_DEVICE_NAME "/stat/STATUS" // can be "online" and "offline"
 #endif
 
 #endif

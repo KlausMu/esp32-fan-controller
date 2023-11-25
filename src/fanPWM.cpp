@@ -53,6 +53,11 @@ void updateMQTT_Screen_withNewMode(bool aModeIsOff, bool force) {
     #endif
     switchOff_screen(modeIsOff);
   }
+  if (modeIsOff) {
+    updateMQTT_Screen_withNewPWMvalue(0, true);
+  } else {
+    updateMQTT_Screen_withNewPWMvalue(INITIALPWMVALUE, true);
+  }
 }
 
 #ifndef useAutomaticTemperatureControl

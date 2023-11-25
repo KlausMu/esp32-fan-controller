@@ -141,7 +141,11 @@ bool mqtt_publish_stat_mode() {
 bool mqtt_publish_hass_discovery() {
   Log.printf("Will send HA discovery now.\r\n");
   bool error = false;
+  #ifdef useAutomaticTemperatureControl
   error =          !publishMQTTMessage(HASSCLIMATEDISCOVERYTOPIC,           HASSCLIMATEDISCOVERYPAYLOAD);
+  #else
+  error =          !publishMQTTMessage(HASSFANDISCOVERYTOPIC,               HASSFANDISCOVERYPAYLOAD);
+  #endif
   #ifdef useTemperatureSensorBME280
   error = error || !publishMQTTMessage(HASSHUMIDITYSENSORDISCOVERYTOPIC,    HASSHUMIDITYSENSORDISCOVERYPAYLOAD);
   error = error || !publishMQTTMessage(HASSTEMPERATURESENSORDISCOVERYTOPIC, HASSTEMPERATURESENSORDISCOVERYPAYLOAD);

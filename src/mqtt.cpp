@@ -35,7 +35,7 @@ void callback(char* topic, byte* payload, unsigned int length);
 
 WiFiClient wifiClient;
 
-PubSubClient mqttClient(mqtt_server, mqtt_server_port, callback, wifiClient);
+PubSubClient mqttClient(MQTT_SERVER, MQTT_SERVER_PORT, callback, wifiClient);
 
 bool checkMQTTconnection();
 
@@ -70,25 +70,25 @@ bool checkMQTTconnection() {
     } else {
       // try to connect to mqtt server
       #if !defined(useHomeassistantMQTTDiscovery)
-      if (mqttClient.connect((char*) mqtt_clientName, (char*) mqtt_user, (char*) mqtt_pass)) {
+      if (mqttClient.connect(MQTT_CLIENTNAME, MQTT_USER, MQTT_PASS)) {
       #else
       // In case of Home Assistant, connect with last will to the broker to set the device offline when the esp32 fan controller is swtiched off
-      if (mqttClient.connect((char*) mqtt_clientName, (char*) mqtt_user, (char*) mqtt_pass,
-                             (char*) hassFanStatusTopic, 0, 1, (char*) hassStatusOfflinePayload)) {
+      if (mqttClient.connect(MQTT_CLIENTNAME, MQTT_USER, MQTT_PASS,
+                             HASSFANSTATUSTOPIC, 0, 1, HASSSTATUSOFFLINEPAYLOAD)) {
       #endif
         Log.printf("  Successfully connected to MQTT broker\r\n");
     
         // subscribes to messages with given topic.
         // Callback function will be called 1. in client.loop() 2. when sending a message
-        mqttClient.subscribe(mqttCmndTargetTemp);
-        mqttClient.subscribe(mqttCmndActualTemp);
-        mqttClient.subscribe(mqttCmndFanPWM);
-        mqttClient.subscribe(mqttCmndFanMode);
+        mqttClient.subscribe(MQTTCMNDTARGETTEMP);
+        mqttClient.subscribe(MQTTCMNDACTUALTEMP);
+        mqttClient.subscribe(MQTTCMNDFANPWM);
+        mqttClient.subscribe(MQTTCMNDFANMODE);
         #if defined(useOTAUpdate)
-        mqttClient.subscribe(mqttCmndOTA);
+        mqttClient.subscribe(MQTTCMNDOTA);
         #endif
         #if defined(useHomeassistantMQTTDiscovery)
-        mqttClient.subscribe(hassStatusTopic);
+        mqttClient.subscribe(HASSSTATUSTOPIC);
         #endif
       } else {
         Log.printf("  MQTT connection failed (but WiFi is available). Will try later ...\r\n");
@@ -125,34 +125,34 @@ bool publishMQTTMessage(const char *topic, const char *payload){
 }
 
 bool mqtt_publish_stat_targetTemp() {
-  return publishMQTTMessage(mqttStatTargetTemp, ((String)getTargetTemperature()).c_str());
+  return publishMQTTMessage(MQTTSTATTARGETTEMP, ((String)getTargetTemperature()).c_str());
 };
 bool mqtt_publish_stat_actualTemp() {
-  return publishMQTTMessage(mqttStatActualTemp, ((String)getActualTemperature()).c_str());
+  return publishMQTTMessage(MQTTSTATACTUALTEMP, ((String)getActualTemperature()).c_str());
 };
 bool mqtt_publish_stat_fanPWM() {
-  return publishMQTTMessage(mqttStatFanPWM,     ((String)getPWMvalue()).c_str());
+  return publishMQTTMessage(MQTTSTATFANPWM,     ((String)getPWMvalue()).c_str());
 };
 bool mqtt_publish_stat_mode() {
-  return publishMQTTMessage(mqttStatFanMode,    getModeIsOff() ? mqttFanModeOffPayload : mqttFanModeFanOnlyPayload);
+  return publishMQTTMessage(MQTTSTATFANMODE,    getModeIsOff() ? MQTTFANMODEOFFPAYLOAD : MQTTFANMODEFANONLYPAYLOAD);
 };
 
 #ifdef useHomeassistantMQTTDiscovery
 bool mqtt_publish_hass_discovery() {
   Log.printf("Will send HA discovery now.\r\n");
   bool error = false;
-  error =          !publishMQTTMessage(hassClimateDiscoveryTopic,           hassClimateDiscoveryPayload);
-  error = error || !publishMQTTMessage(hassHumiditySensorDiscoveryTopic,    hassHumiditySensorDiscoveryPayload);
-  error = error || !publishMQTTMessage(hassTemperatureSensorDiscoveryTopic, hassTemperatureSensorDiscoveryPayload);
-  error = error || !publishMQTTMessage(hassPressureSensorDiscoveryTopic,    hassPressureSensorDiscoveryPayload);
-  error = error || !publishMQTTMessage(hassAltitudeSensorDiscoveryTopic,    hassAltitudeSensorDiscoveryPayload);
-  error = error || !publishMQTTMessage(hassPWMSensorDiscoveryTopic,         hassPWMSensorDiscoveryPayload);
-  error = error || !publishMQTTMessage(hassRPMSensorDiscoveryTopic,         hassRPMSensorDiscoveryPayload);
+  error =          !publishMQTTMessage(HASSCLIMATEDISCOVERYTOPIC,           HASSCLIMATEDISCOVERYPAYLOAD);
+  error = error || !publishMQTTMessage(HASSHUMIDITYSENSORDISCOVERYTOPIC,    HASSHUMIDITYSENSORDISCOVERYPAYLOAD);
+  error = error || !publishMQTTMessage(HASSTEMPERATURESENSORDISCOVERYTOPIC, HASSTEMPERATURESENSORDISCOVERYPAYLOAD);
+  error = error || !publishMQTTMessage(HASSPRESSURESENSORDISCOVERYTOPIC,    HASSPRESSURESENSORDISCOVERYPAYLOAD);
+  error = error || !publishMQTTMessage(HASSALTITUDESENSORDISCOVERYTOPIC,    HASSALTITUDESENSORDISCOVERYPAYLOAD);
+  error = error || !publishMQTTMessage(HASSPWMSENSORDISCOVERYTOPIC,         HASSPWMSENSORDISCOVERYPAYLOAD);
+  error = error || !publishMQTTMessage(HASSRPMSENSORDISCOVERYTOPIC,         HASSRPMSENSORDISCOVERYPAYLOAD);
 
   if (!error) {delay(1000);}
   // publish that we are online. Remark: offline is sent via last will retained message
-  error = error || !publishMQTTMessage(hassFanStatusTopic, "", true);
-  error = error || !publishMQTTMessage(hassFanStatusTopic, hassStatusOnlinePayload);
+  error = error || !publishMQTTMessage(HASSFANSTATUSTOPIC, "", true);
+  error = error || !publishMQTTMessage(HASSFANSTATUSTOPIC, HASSSTATUSONLINEPAYLOAD);
 
   if (!error) {delay(1000);}
   // MODE????
@@ -191,7 +191,7 @@ bool mqtt_publish_tele() {
   payload += ",\"TargTemp\":";
   payload += getTargetTemperature();
   payload += "}";
-  error =          !publishMQTTMessage(mqttTeleState1, payload.c_str());
+  error =          !publishMQTTMessage(MQTTTELESTATE1, payload.c_str());
   #endif
 
   // Fan
@@ -201,7 +201,7 @@ bool mqtt_publish_tele() {
   payload += ",\"pwm\":";
   payload += getPWMvalue();
   payload += "}";
-  error = error || !publishMQTTMessage(mqttTeleState2, payload.c_str());
+  error = error || !publishMQTTMessage(MQTTTELESTATE2, payload.c_str());
 
   // WiFi
   payload = "";
@@ -213,10 +213,14 @@ bool mqtt_publish_tele() {
   payload += WiFi.SSID();
   payload += ",\"wifiBSSID\":";
   payload += WiFi.BSSIDstr();
+  #if defined(WIFI_KNOWN_APS)
+  payload += ",\"wifiAP\":";
+  payload += accessPointName;
+  #endif
   payload += ",\"IP\":";
   payload += WiFi.localIP().toString();
   payload += "}";
-  error = error || !publishMQTTMessage(mqttTeleState3, payload.c_str());
+  error = error || !publishMQTTMessage(MQTTTELESTATE3, payload.c_str());
 
   // ESP32 stats
   payload = "";
@@ -231,7 +235,7 @@ bool mqtt_publish_tele() {
   payload += ",\"heapMax\":";
   payload += String(ESP.getMaxAllocHeap());
   payload += "}";
-  error = error || !publishMQTTMessage(mqttTeleState4, payload.c_str());
+  error = error || !publishMQTTMessage(MQTTTELESTATE4, payload.c_str());
 
   return !error;
 }
@@ -244,15 +248,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   String topicReceived(topic);
 
-  String topicCmndTargetTemp(mqttCmndTargetTemp);
-  String topicCmndActualTemp(mqttCmndActualTemp);
-  String topicCmndFanPWM(mqttCmndFanPWM);
-  String topicCmndFanMode(mqttCmndFanMode);
+  String topicCmndTargetTemp(MQTTCMNDTARGETTEMP);
+  String topicCmndActualTemp(MQTTCMNDACTUALTEMP);
+  String topicCmndFanPWM(MQTTCMNDFANPWM);
+  String topicCmndFanMode(MQTTCMNDFANMODE);
   #if defined(useOTAUpdate)
-  String topicCmndOTA(mqttCmndOTA);
+  String topicCmndOTA(MQTTCMNDOTA);
   #endif
   #if defined(useHomeassistantMQTTDiscovery)
-  String topicHaStatus(hassStatusTopic);
+  String topicHaStatus(HASSSTATUSTOPIC);
   #endif
   if (topicReceived == topicCmndTargetTemp) {
     #ifdef useAutomaticTemperatureControl
@@ -286,10 +290,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     #endif
   } else if (topicReceived == topicCmndFanMode) {
     Log.printf("Setting HVAC mode from HA received via mqtt\r\n");
-    if (strPayload == mqttFanModeFanOnlyPayload) {
+    if (strPayload == MQTTFANMODEFANONLYPAYLOAD) {
       Log.printf("  Will turn fan into \"fan_only\" mode\r\n");
       updateMQTT_Screen_withNewMode(false, true);
-    } else if (strPayload == mqttFanModeOffPayload) {
+    } else if (strPayload == MQTTFANMODEOFFPAYLOAD) {
       Log.printf("  Will switch fan off\r\n");
       updateMQTT_Screen_withNewMode(true, true);
     } else {
@@ -309,13 +313,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
 #endif
 #if defined(useHomeassistantMQTTDiscovery)
   } else if (topicReceived == topicHaStatus) {
-    if (strPayload == hassStatusOnlinePayload) {
+    if (strPayload == HASSSTATUSONLINEPAYLOAD) {
       Log.printf("HA status online received. This means HA has restarted. Will send discovery again in some seconds as defined in config.h\r\n");
       // set timer so that discovery will be resent after some seconds (as defined in config.h)
       timerStartForHAdiscovery = millis();
       // Very unlikely. Can only happen if millis() overflowed max unsigned long every approx. 50 days
       if (timerStartForHAdiscovery == 0) {timerStartForHAdiscovery = 1;}
-    } else if (strPayload == hassStatusOfflinePayload) {
+    } else if (strPayload == HASSSTATUSOFFLINEPAYLOAD) {
       Log.printf("HA status offline received. Nice to know. Currently we don't react to this.\r\n");
     } else {
       Log.printf("Payload %s not supported\r\n", strPayload.c_str());

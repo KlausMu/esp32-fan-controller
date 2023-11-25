@@ -21,13 +21,13 @@ int tsx, tsy, tsxraw, tsyraw;
 
 // checks if point x/y is inside rect[]
 bool pointInRect(const int rect[], int x, int y) {
-  if (TFT_rotation == 3) {
+  if (TFT_ROTATION == 3) {
     return
       (x >= rect[0]) &&
       (x <= rect[0] + rect[2]) &&
       (y >= rect[1]) &&
       (y <= rect[1] + rect[3]);
-  } else if (TFT_rotation == 1) {
+  } else if (TFT_ROTATION == 1) {
     return
       (tft_getWidth()  - x >= rect[0]) &&
       (tft_getWidth()  - x <= rect[0] + rect[2]) &&

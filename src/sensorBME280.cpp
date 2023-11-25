@@ -24,15 +24,15 @@ void initBME280(void){
   lastTempSensorValues[3] = NAN;
 
   I2Cone.begin(I2C_SDA, I2C_SCL, I2C_FREQ);
-  status_BME280 = bme.begin(BME280_addr, &I2Cone);
+  status_BME280 = bme.begin(BME280_ADDR, &I2Cone);
 
   if (!status_BME280) {
     Log.printf("  Could not find a valid BME280 sensor, check wiring!\r\n");
   } else {
     Log.printf("  BME280 sucessfully initialized.\r\n");
     // Calibrate BME280 with actual pressure and given height. Will be used until restart of ESP32
-    calibratedPressureAtSeaLevel = (bme.seaLevelForAltitude(heightOverSealevelAtYourLocation, bme.readPressure() / 100.0F));
-    Log.printf("  BME280 was calibrated to %.1f m\r\n", heightOverSealevelAtYourLocation);
+    calibratedPressureAtSeaLevel = (bme.seaLevelForAltitude(HEIGHTOVERSEALEVELATYOURLOCATION, bme.readPressure() / 100.0F));
+    Log.printf("  BME280 was calibrated to %.1f m\r\n", HEIGHTOVERSEALEVELATYOURLOCATION);
   }
   #else
   Log.printf("    BME280 is disabled in config.h\r\n");

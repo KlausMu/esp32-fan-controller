@@ -1,3 +1,6 @@
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
+
 #include <driver/gpio.h>
 #include <esp32-hal-gpio.h>
 /*
@@ -20,23 +23,23 @@ First set mode, then go further down in this file to set other options needed fo
 
 */
 // --- setting mode -------------------------------------------------------------------------------------------------------------------------
-// #define useAutomaticTemperatureControl
+#define useAutomaticTemperatureControl
   #ifdef useAutomaticTemperatureControl
     // --- choose how to set target temperature. Activate only one. --------------------------------------
     #define setActualTemperatureViaBME280
     // #define setActualTemperatureViaMQTT
   #endif
-// #define useTemperatureSensorBME280
+#define useTemperatureSensorBME280
 #define useWIFI
 #define useMQTT
-// #define useTFT
+#define useTFT
   #ifdef useTFT
     // --- choose which display to use. Activate only one. -----------------------------------------------
-    // #define DRIVER_ILI9341       // 2.8 inch touch panel, 320x240, used in AZ-Touch
-    #define DRIVER_ST7735        // 1.8 inch panel,       160x128
+    #define DRIVER_ILI9341       // 2.8 inch touch panel, 320x240, used in AZ-Touch
+    // #define DRIVER_ST7735        // 1.8 inch panel,       160x128
   #endif
-// #define useTouch
-// #define showShutdownButton
+#define useTouch
+#define showShutdownButton
 
 // --- Home Assistant MQTT discovery --------------------------------------------------------------------------------------------------------
 /* If you are using Home Assistant, you can activate auto discovery of the climate and sensors.
@@ -48,37 +51,37 @@ First set mode, then go further down in this file to set other options needed fo
 
 // --- fan specs ----------------------------------------------------------------------------------------------------------------------------
 // fanPWM
-const int pwmPin               = GPIO_NUM_17;
-const int pwmFreq              = 25000;
-const int pwmChannel           = 0;
-const int pwmResolution        = 8;
-const int fanMaxRPM            = 1500;         // only used for showing at how many percent fan is running
+#define PWMPIN               GPIO_NUM_17
+#define PWMFREQ              25000
+#define PWMCHANNEL           0
+#define PWMRESOLUTION        8
+#define FANMAXRPM            1500         // only used for showing at how many percent fan is running
 
 // fanTacho
-const int tachoPin                             = GPIO_NUM_16;
-const int tachoUpdateCycle                     = 1000; // how often tacho speed shall be determined, in milliseconds
-const int numberOfInterrupsInOneSingleRotation = 2;    // Number of interrupts ESP32 sees on tacho signal on a single fan rotation. All the fans I've seen trigger two interrups.
+#define TACHOPIN                             GPIO_NUM_16
+#define TACHOUPDATECYCLE                     1000 // how often tacho speed shall be determined, in milliseconds
+#define NUMBEROFINTERRUPSINONESINGLEROTATION 2    // Number of interrupts ESP32 sees on tacho signal on a single fan rotation. All the fans I've seen trigger two interrups.
 
 // --- automatic temperature control --------------------------------------------------------------------------------------------------------
 
 // ifdef:  adaptive fan speed depending on actual temperature and target temperature
 //         target temperature can be set via tft touch or via mqtt
-//         needs "useTemperatureSensorBME280 = true"
+//         needs "useTemperatureSensorBME280 defined"
 // ifndef: fan speed (pwm) is directly set, no adaptive temperature control
 //         you can set fan speed either via tft touch or via mqtt
 
 #ifdef useAutomaticTemperatureControl
 // initial target temperature on startup
-const float initialTargetTemperature = 27.0;
+#define INITIALTARGETTEMPERATURE 27.0
 // Lowest pwm value the temperature controller should use to set fan speed. If you want the fan not to turn off, set a value so that fan always runs.
-const int pwmMinimumValue            = 120;
+#define PWMMINIMUMVALUE            120
 #else
 // delta used when manually increasing or decreasing pwm
-const int pwmStep                    = 10;
+#define PWMSTEP                    10
 #endif
 
 // initial pwm fan speed on startup (0 <= value <= 255)
-const int initialPwmValue            = 120;
+#define INITIALPWMVALUE            120
 
 // sanity check
 #if !defined(setActualTemperatureViaBME280) && !defined(setActualTemperatureViaMQTT) && defined(useAutomaticTemperatureControl)
@@ -95,19 +98,23 @@ static_assert(false, "You cannot have both \"#define setActualTemperatureViaBME2
 
 #ifdef useTemperatureSensorBME280
 // I2C pins used for BME280
-const int I2C_SCL              = GPIO_NUM_32; // GPIO_NUM_22; // GPIO_NUM_17
-const int I2C_SDA              = GPIO_NUM_33; // GPIO_NUM_21; // GPIO_NUM_16
-const uint32_t I2C_FREQ        = 100000; // 400000
-const uint8_t BME280_addr      = 0x76;
+#define I2C_SCL              GPIO_NUM_32 // GPIO_NUM_22 // GPIO_NUM_17
+#define I2C_SDA              GPIO_NUM_33 // GPIO_NUM_21 // GPIO_NUM_16
+#define I2C_FREQ        100000 // 400000
+#define BME280_ADDR      0x76
 // in order to calibrate BME280 at startup, provide here the height over sea level in meter at your location
-const float heightOverSealevelAtYourLocation = 112.0;
+#define HEIGHTOVERSEALEVELATYOURLOCATION 112.0
 #endif
 
 // --- wifi ---------------------------------------------------------------------------------------------------------------------------------
 
 #ifdef useWIFI
-const char* const wifi_ssid              = "YourWifiSSID";
-const char* const wifi_password          = "YourWifiPassword";
+#define WIFI_SSID     "YourWifiSSID"           // override it in file "config_override.h"
+#define WIFI_PASSWORD "YourWifiPassword"       // override it in file "config_override.h"
+//#define WIFI_KNOWN_APS_COUNT 2
+//#define WIFI_KNOWN_APS \
+//  { "00:11:22:33:44:55", "Your AP 2,4 GHz"}, \
+//  { "66:77:88:99:AA:BB", "Your AP 5 GHz"}
 #endif
 
 // --- OTA Update ---------------------------------------------------------------------------------------------------------------------------
@@ -130,11 +137,11 @@ static_assert(false, "You cannot use \"#define useOTA_RTOS\" without \"#define u
 // --- mqtt ---------------------------------------------------------------------------------------------------------------------------------
 
 #ifdef useMQTT
-const char* const mqtt_server            = "IPAddressOfYourBroker";
-const int mqtt_server_port               = 1883;
-const char* const mqtt_user              = "myUser or empty";
-const char* const mqtt_pass              = "myPassword or empty";
-const char* const mqtt_clientName        = "esp32_3dprinter";
+#define MQTT_SERVER            "IPAddressOfYourBroker" // override it in file "config_override.h"
+#define MQTT_SERVER_PORT       1883                    // override it in file "config_override.h"
+#define MQTT_USER              ""                      // override it in file "config_override.h"
+#define MQTT_PASS              ""                      // override it in file "config_override.h"
+#define MQTT_CLIENTNAME        "esp32_fan_controller"
 /*
 For understanding when "cmnd", "stat" and "tele" is used, have a look at how Tasmota is doing it.
 https://tasmota.github.io/docs/MQTT
@@ -153,30 +160,30 @@ mosquitto_sub -h localhost -t "esp32_fan_controller/#" -v
   For this, you have to replace every single occurance of "esp32_fan_controller" in this file with something unique, e.g. "esp32_fan_controller_1"
 */
 
-const char* const mqttCmndTargetTemp        = "esp32_fan_controller/cmnd/TARGETTEMP";
-const char* const mqttStatTargetTemp        = "esp32_fan_controller/stat/TARGETTEMP";
-const char* const mqttCmndActualTemp        = "esp32_fan_controller/cmnd/ACTUALTEMP";
-const char* const mqttStatActualTemp        = "esp32_fan_controller/stat/ACTUALTEMP";
-const char* const mqttCmndFanPWM            = "esp32_fan_controller/cmnd/FANPWM";
-const char* const mqttStatFanPWM            = "esp32_fan_controller/stat/FANPWM";
+#define MQTTCMNDTARGETTEMP        "esp32_fan_controller/cmnd/TARGETTEMP"
+#define MQTTSTATTARGETTEMP        "esp32_fan_controller/stat/TARGETTEMP"
+#define MQTTCMNDACTUALTEMP        "esp32_fan_controller/cmnd/ACTUALTEMP"
+#define MQTTSTATACTUALTEMP        "esp32_fan_controller/stat/ACTUALTEMP"
+#define MQTTCMNDFANPWM            "esp32_fan_controller/cmnd/FANPWM"
+#define MQTTSTATFANPWM            "esp32_fan_controller/stat/FANPWM"
 // https://www.home-assistant.io/integrations/climate.mqtt/#mode_command_topic
 // https://www.home-assistant.io/integrations/climate.mqtt/#mode_state_topic
 // note: it is not guaranteed that fan stops if pwm is set to 0
-const char* const mqttCmndFanMode           = "esp32_fan_controller/cmnd/MODE";   // can be "off" and "fan_only"
-const char* const mqttStatFanMode           = "esp32_fan_controller/stat/MODE";
-const char* const mqttFanModeOffPayload     = "off";
-const char* const mqttFanModeFanOnlyPayload = "fan_only";
+#define MQTTCMNDFANMODE           "esp32_fan_controller/cmnd/MODE"   // can be "off" and "fan_only"
+#define MQTTSTATFANMODE           "esp32_fan_controller/stat/MODE"
+#define MQTTFANMODEOFFPAYLOAD     "off"
+#define MQTTFANMODEFANONLYPAYLOAD "fan_only"
 
 #if defined(useOTAUpdate)
-const char* const mqttCmndOTA            = "esp32_fan_controller/cmnd/OTA";
+#define MQTTCMNDOTA            "esp32_fan_controller/cmnd/OTA"
 #endif
 
 #ifdef useTemperatureSensorBME280
-const char* const mqttTeleState1         = "esp32_fan_controller/tele/STATE1";
+#define MQTTTELESTATE1         "esp32_fan_controller/tele/STATE1"
 #endif
-const char* const mqttTeleState2         = "esp32_fan_controller/tele/STATE2";
-const char* const mqttTeleState3         = "esp32_fan_controller/tele/STATE3";
-const char* const mqttTeleState4         = "esp32_fan_controller/tele/STATE4";
+#define MQTTTELESTATE2         "esp32_fan_controller/tele/STATE2"
+#define MQTTTELESTATE3         "esp32_fan_controller/tele/STATE3"
+#define MQTTTELESTATE4         "esp32_fan_controller/tele/STATE4"
 
 #if defined(useHomeassistantMQTTDiscovery)
 /* see
@@ -185,36 +192,36 @@ const char* const mqttTeleState4         = "esp32_fan_controller/tele/STATE4";
    https://www.home-assistant.io/integrations/mqtt/#discovery-messages
    https://www.home-assistant.io/integrations/mqtt/#birth-and-last-will-messages
 */
-const char* const hassStatusTopic                       = "homeassistant/status";    // can be "online" and "offline"
-const char* const hassStatusOnlinePayload               = "online";
-const char* const hassStatusOfflinePayload              = "offline";
+#define HASSSTATUSTOPIC                       "homeassistant/status"    // can be "online" and "offline"
+#define HASSSTATUSONLINEPAYLOAD               "online"
+#define HASSSTATUSOFFLINEPAYLOAD              "offline"
 /*
    When HA sends status online, we have to resent the discovery. But we have to wait some seconds, otherwise HA will not recognize the mqtt messages.
    If you have HA running on a weak mini computer, you may have to increase the waiting time. Value is in ms.
    Remark: the whole discovery process will be done in the following order:
    discovery, delay(1000), status=online, delay(1000), all inital values
 */
-const int waitAfterHAisOnlineUntilDiscoveryWillBeSent   = 1000;
+#define WAITAFTERHAISONLINEUNTILDISCOVERYWILLBESENT   1000
 
-const char* const hassClimateDiscoveryTopic             = "homeassistant/climate/esp32_fan_controller/config";
-const char* const hassHumiditySensorDiscoveryTopic      = "homeassistant/sensor/esp32_fan_controller/humidity/config";
-const char* const hassTemperatureSensorDiscoveryTopic   = "homeassistant/sensor/esp32_fan_controller/temperature/config";
-const char* const hassPressureSensorDiscoveryTopic      = "homeassistant/sensor/esp32_fan_controller/pressure/config";
-const char* const hassAltitudeSensorDiscoveryTopic      = "homeassistant/sensor/esp32_fan_controller/altitude/config";
-const char* const hassPWMSensorDiscoveryTopic           = "homeassistant/sensor/esp32_fan_controller/pwm/config";
-const char* const hassRPMSensorDiscoveryTopic           = "homeassistant/sensor/esp32_fan_controller/rpm/config";
+#define HASSCLIMATEDISCOVERYTOPIC             "homeassistant/climate/esp32_fan_controller/config"
+#define HASSHUMIDITYSENSORDISCOVERYTOPIC      "homeassistant/sensor/esp32_fan_controller/humidity/config"
+#define HASSTEMPERATURESENSORDISCOVERYTOPIC   "homeassistant/sensor/esp32_fan_controller/temperature/config"
+#define HASSPRESSURESENSORDISCOVERYTOPIC      "homeassistant/sensor/esp32_fan_controller/pressure/config"
+#define HASSALTITUDESENSORDISCOVERYTOPIC      "homeassistant/sensor/esp32_fan_controller/altitude/config"
+#define HASSPWMSENSORDISCOVERYTOPIC           "homeassistant/sensor/esp32_fan_controller/pwm/config"
+#define HASSRPMSENSORDISCOVERYTOPIC           "homeassistant/sensor/esp32_fan_controller/rpm/config"
 // see https://www.home-assistant.io/integrations/climate.mqtt/
-const char* const hassClimateDiscoveryPayload           = "{\"name\":null,            \"unique_id\":\"esp32_fan_controller\",             \"object_id\":\"esp32_fan_controller\",             \"~\":\"esp32_fan_controller\", \"icon\":\"mdi:fan\", \"min_temp\":10, \"max_temp\":50, \"temp_step\":1, \"precision\":0.1, \"current_humidity_topic\":\"~/tele/STATE1\", \"current_humidity_template\":\"{{value_json.hum | round(0)}}\", \"current_temperature_topic\":\"~/stat/ACTUALTEMP\", \"temperature_command_topic\":\"~/cmnd/TARGETTEMP\", \"temperature_state_topic\":\"~/stat/TARGETTEMP\", \"modes\":[\"off\",\"fan_only\"], \"mode_command_topic\":\"~/cmnd/MODE\", \"mode_state_topic\":\"~/stat/MODE\", \"availability_topic\":\"~/stat/STATUS\", \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
+#define HASSCLIMATEDISCOVERYPAYLOAD           "{\"name\":null,            \"unique_id\":\"esp32_fan_controller\",             \"object_id\":\"esp32_fan_controller\",             \"~\":\"esp32_fan_controller\", \"icon\":\"mdi:fan\", \"min_temp\":10, \"max_temp\":50, \"temp_step\":1, \"precision\":0.1, \"current_humidity_topic\":\"~/tele/STATE1\", \"current_humidity_template\":\"{{value_json.hum | round(0)}}\", \"current_temperature_topic\":\"~/stat/ACTUALTEMP\", \"temperature_command_topic\":\"~/cmnd/TARGETTEMP\", \"temperature_state_topic\":\"~/stat/TARGETTEMP\", \"modes\":[\"off\",\"fan_only\"], \"mode_command_topic\":\"~/cmnd/MODE\", \"mode_state_topic\":\"~/stat/MODE\", \"availability_topic\":\"~/stat/STATUS\", \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
 // see https://www.home-assistant.io/integrations/sensor.mqtt/
-const char* const hassHumiditySensorDiscoveryPayload    = "{\"name\":\"Humidity\",    \"unique_id\":\"esp32_fan_controller_humidity\",    \"object_id\":\"esp32_fan_controller_humidity\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.hum     | round(0) }}\", \"device_class\":\"humidity\",             \"unit_of_measurement\":\"%\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
-const char* const hassTemperatureSensorDiscoveryPayload = "{\"name\":\"Temperature\", \"unique_id\":\"esp32_fan_controller_temperature\", \"object_id\":\"esp32_fan_controller_temperature\", \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.ActTemp | round(1) }}\", \"device_class\":\"temperature\",          \"unit_of_measurement\":\"°C\",  \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
-const char* const hassPressureSensorDiscoveryPayload    = "{\"name\":\"Pressure\",    \"unique_id\":\"esp32_fan_controller_pressure\",    \"object_id\":\"esp32_fan_controller_pressure\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.pres    | round(0) }}\", \"device_class\":\"atmospheric_pressure\", \"unit_of_measurement\":\"hPa\", \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
-const char* const hassAltitudeSensorDiscoveryPayload    = "{\"name\":\"Altitude\",    \"unique_id\":\"esp32_fan_controller_altitude\",    \"object_id\":\"esp32_fan_controller_altitude\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.alt     | round(1) }}\", \"device_class\":\"distance\",             \"unit_of_measurement\":\"m\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
-const char* const hassPWMSensorDiscoveryPayload         = "{\"name\":\"PWM\",         \"unique_id\":\"esp32_fan_controller_PWM\",         \"object_id\":\"esp32_fan_controller_PWM\",         \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.pwm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
-const char* const hassRPMSensorDiscoveryPayload         = "{\"name\":\"RPM\",         \"unique_id\":\"esp32_fan_controller_RPM\",         \"object_id\":\"esp32_fan_controller_RPM\",         \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.rpm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}";
+#define HASSHUMIDITYSENSORDISCOVERYPAYLOAD    "{\"name\":\"Humidity\",    \"unique_id\":\"esp32_fan_controller_humidity\",    \"object_id\":\"esp32_fan_controller_humidity\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.hum     | round(0) }}\", \"device_class\":\"humidity\",             \"unit_of_measurement\":\"%\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
+#define HASSTEMPERATURESENSORDISCOVERYPAYLOAD "{\"name\":\"Temperature\", \"unique_id\":\"esp32_fan_controller_temperature\", \"object_id\":\"esp32_fan_controller_temperature\", \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.ActTemp | round(1) }}\", \"device_class\":\"temperature\",          \"unit_of_measurement\":\"°C\",  \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
+#define HASSPRESSURESENSORDISCOVERYPAYLOAD    "{\"name\":\"Pressure\",    \"unique_id\":\"esp32_fan_controller_pressure\",    \"object_id\":\"esp32_fan_controller_pressure\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.pres    | round(0) }}\", \"device_class\":\"atmospheric_pressure\", \"unit_of_measurement\":\"hPa\", \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
+#define HASSALTITUDESENSORDISCOVERYPAYLOAD    "{\"name\":\"Altitude\",    \"unique_id\":\"esp32_fan_controller_altitude\",    \"object_id\":\"esp32_fan_controller_altitude\",    \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE1\", \"value_template\":\"{{ value_json.alt     | round(1) }}\", \"device_class\":\"distance\",             \"unit_of_measurement\":\"m\",   \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
+#define HASSPWMSENSORDISCOVERYPAYLOAD         "{\"name\":\"PWM\",         \"unique_id\":\"esp32_fan_controller_PWM\",         \"object_id\":\"esp32_fan_controller_PWM\",         \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.pwm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
+#define HASSRPMSENSORDISCOVERYPAYLOAD         "{\"name\":\"RPM\",         \"unique_id\":\"esp32_fan_controller_RPM\",         \"object_id\":\"esp32_fan_controller_RPM\",         \"~\":\"esp32_fan_controller\", \"state_topic\":\"~/tele/STATE2\", \"value_template\":\"{{ value_json.rpm }}\",                                                                                            \"state_class\":\"measurement\", \"expire_after\": \"30\",                                                                                                                                                                                                                                                                                             \"dev\":{\"name\":\"Fan Controller\", \"model\":\"esp32_fan_controller\", \"identifiers\":[\"esp32_fan_controller\"], \"manufacturer\":\"KlausMu\"}}"
 
 // see https://www.home-assistant.io/integrations/climate.mqtt/#availability_topic
-const char* const hassFanStatusTopic                    = "esp32_fan_controller/stat/STATUS"; // can be "online" and "offline"
+#define HASSFANSTATUSTOPIC                    "esp32_fan_controller/stat/STATUS" // can be "online" and "offline"
 #endif
 
 #endif
@@ -230,41 +237,46 @@ static_assert(false, "You have to use \"#define useMQTT\" when having \"#define 
 // --- tft ----------------------------------------------------------------------------------------------------------------------------------
 
 #ifdef useTFT
-const int TFT_CS                = GPIO_NUM_5 ;   //diplay chip select
-const int TFT_DC                = GPIO_NUM_4 ;   //display d/c
-const int TFT_RST               = GPIO_NUM_22;   //display reset
-const int TFT_MOSI              = GPIO_NUM_23;   //diplay MOSI
-const int TFT_CLK               = GPIO_NUM_18;   //display clock
+#define TFT_CS                GPIO_NUM_5    //diplay chip select
+#define TFT_DC                GPIO_NUM_4    //display d/c
+#define TFT_RST               GPIO_NUM_22   //display reset
+#define TFT_MOSI              GPIO_NUM_23   //diplay MOSI
+#define TFT_CLK               GPIO_NUM_18   //display clock
 
 
 #ifdef DRIVER_ILI9341
-const int TFT_LED               = GPIO_NUM_15;   //display background LED
-const int TFT_MISO              = GPIO_NUM_19;   //display MISO
-const int TFT_rotation          = 3; // use 1 (landscape) or 3 (landscape upside down), nothing else. 0 and 2 (portrait) will not give a nice result.
+#define TFT_LED               GPIO_NUM_15   //display background LED
+#define TFT_MISO              GPIO_NUM_19   //display MISO
+#define TFT_ROTATION          3 // use 1 (landscape) or 3 (landscape upside down), nothing else. 0 and 2 (portrait) will not give a nice result.
 #endif
 #ifdef DRIVER_ST7735
-const int TFT_rotation          = 1; // use 1 (landscape) or 3 (landscape upside down), nothing else. 0 and 2 (portrait) will not give a nice result.
+#define TFT_ROTATION          1 // use 1 (landscape) or 3 (landscape upside down), nothing else. 0 and 2 (portrait) will not give a nice result.
 #endif
 
 #endif
 
 // --- touch --------------------------------------------------------------------------------------------------------------------------------
 
-#ifdef useTouch
-const int TOUCH_CS              = GPIO_NUM_14;
 // Only AZ-Touch: here you have to set the pin for TOUCH_IRQ. The older "ArduiTouch" and the newer "AZ-Touch" use different pins. And you have to set the LED-PIN to different values to light up the TFT.
 // 1. "ArduiTouch" 2.4 inch (older version)
 // https://www.az-delivery.de/en/products/az-touch-wandgehauseset-mit-touchscreen-fur-esp8266-und-esp32
-// const int TOUCH_IRQ            = GPIO_NUM_2 ;   // touch screen interrupt
+#ifdef useTFT
+// #define LED_ON           LOW          // override it in file "config_override.h"
 #endif
-// const int LED_ON               = LOW;
 #ifdef useTouch
+// #define TOUCH_CS         GPIO_NUM_14  // override it in file "config_override.h"
+// #define TOUCH_IRQ        GPIO_NUM_2   // override it in file "config_override.h"
+#endif
 // 2. "AZ-Touch" 2.8 inch, since November 2020
 // https://www.az-delivery.de/en/products/az-touch-wandgehauseset-mit-2-8-zoll-touchscreen-fur-esp8266-und-esp32
 // https://www.az-delivery.de/en/blogs/azdelivery-blog-fur-arduino-und-raspberry-pi/az-touch-mod
-const int TOUCH_IRQ            = GPIO_NUM_27 ;   // touch screen interrupt
+#ifdef useTFT
+#define LED_ON           HIGH          // override it in file "config_override.h"
 #endif
-const int LED_ON               = HIGH;
+#ifdef useTouch
+#define TOUCH_CS         GPIO_NUM_14   // override it in file "config_override.h"
+#define TOUCH_IRQ        GPIO_NUM_27   // override it in file "config_override.h"
+#endif
 
 // sanity check
 #if defined(useTouch) && !defined(useTFT)
@@ -293,13 +305,13 @@ static_assert(false, "You cannot disable both MQTT and touch, otherwise you cann
 */
 
 #ifdef showShutdownButton
-const char* const shutdownRequest      = "http://<IPAddressOfYourHAserver:8123>/api/services/input_button/press";
-const char* const shutdownPayload      = "{\"entity_id\": \"input_button.3dprinter_shutdown\"}";
-const char* const shutdownHeaderName1  = "Authorization";
-const char* const shutdownHeaderValue1 = "Bearer <your bearer token>";
-const char* const shutdownHeaderName2  = "Content-Type";
-const char* const shutdownHeaderValue2 = "application/json";
-const int shutdownCountdown            = 30;  // in seconds
+#define SHUTDOWNREQUEST                "http://<IPAddressOfYourHAserver:8123>/api/services/input_button/press" // override it in file "config_override.h"
+#define SHUTDOWNPAYLOAD                "{\"entity_id\": \"input_button.3dprinter_shutdown\"}"                  // override it in file "config_override.h"
+#define SHUTDOWNHEADERNAME1            "Authorization"                                                         // override it in file "config_override.h"
+#define SHUTDOWNHEADERVALUE1           "Bearer <your bearer token>"                                            // override it in file "config_override.h"
+#define SHUTDOWNHEADERNAME2            "Content-Type"                                                          // override it in file "config_override.h"
+#define SHUTDOWNHEADERVALUE2           "application/json"                                                      // override it in file "config_override.h"
+#define SHUTDOWNCOUNTDOWN              30  // in seconds
 #endif
 
 // sanity check
@@ -313,6 +325,13 @@ static_assert(false, "You have to use \"#define useTouch\" when having \"#define
 // --- not used -----------------------------------------------------------------------------------------------------------------------------
 #ifdef DRIVER_ILI9341
 // Occupied by AZ-touch. This software doesn't use this pin
-const int BUZZER                = GPIO_NUM_21;
-// const int A0                   = GPIO_NUM_36;
+#define BUZZER                GPIO_NUM_21
+// #define A0                   GPIO_NUM_36
 #endif
+
+// --- include override settings from seperate file ---------------------------------------------------------------------------------------------------------------
+#if __has_include("config_override.h")
+  #include "config_override.h"
+#endif
+
+#endif /*__CONFIG_H__*/

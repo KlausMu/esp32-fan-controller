@@ -97,7 +97,7 @@ void loop(){
     draw_screen();
     #endif
     #ifdef useHomeassistantMQTTDiscovery
-    if (((currentMillis - timerStartForHAdiscovery) >= waitAfterHAisOnlineUntilDiscoveryWillBeSent) && (timerStartForHAdiscovery != 0)) {
+    if (((currentMillis - timerStartForHAdiscovery) >= WAITAFTERHAISONLINEUNTILDISCOVERYWILLBESENT) && (timerStartForHAdiscovery != 0)) {
       mqtt_publish_hass_discovery();
     }
     #endif

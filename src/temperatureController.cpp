@@ -24,7 +24,7 @@ void updatePWM_MQTT_Screen_withNewActualTemperature(float aActualTemperature, bo
 
 void initTemperatureController(void) {
   #ifdef useAutomaticTemperatureControl
-  targetTemperature = initialTargetTemperature;
+  targetTemperature = INITIALTARGETTEMPERATURE;
   updatePWM_MQTT_Screen_withNewTargetTemperature(targetTemperature, true);
   #ifdef setActualTemperatureViaMQTT
   setActualTemperatureAndPublishMQTT(NAN);
@@ -53,7 +53,7 @@ void setFanPWMbasedOnTemperature(void) {
     newPWMvalue = 255;
   } else if (difftemp <= 0.0) {
     // Temperature is below target temperature. Run fan at minimum speed.
-    newPWMvalue = pwmMinimumValue; 
+    newPWMvalue = PWMMINIMUMVALUE; 
   } else if (difftemp <= 0.5) {
     newPWMvalue = 140;
   } else if (difftemp <= 1.0) {

@@ -16,14 +16,14 @@ bool shutdownRaspPi(){
 
   bool res = false;
   HTTPClient http;
-  http.begin(shutdownRequest);
-  if (strcmp(shutdownHeaderName1, "") != 0) {
-    http.addHeader(shutdownHeaderName1, shutdownHeaderValue1);
+  http.begin(SHUTDOWNREQUEST);
+  if (strcmp(SHUTDOWNHEADERNAME1, "") != 0) {
+    http.addHeader(SHUTDOWNHEADERNAME1, SHUTDOWNHEADERVALUE1);
   }
-  if (strcmp(shutdownHeaderName2, "") != 0) {
-    http.addHeader(shutdownHeaderName2, shutdownHeaderValue2);
+  if (strcmp(SHUTDOWNHEADERNAME2, "") != 0) {
+    http.addHeader(SHUTDOWNHEADERNAME2, SHUTDOWNHEADERVALUE2);
   }
-  int httpCode = http.POST(shutdownPayload);
+  int httpCode = http.POST(SHUTDOWNPAYLOAD);
 
   if (httpCode > 0) { //Check for the returning code
       String payload = http.getString();

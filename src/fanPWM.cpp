@@ -14,11 +14,11 @@ void updateMQTT_Screen_withNewMode(bool aModeIsOff, bool force);
 // https://randomnerdtutorials.com/esp32-pwm-arduino-ide/
 void initPWMfan(void){
   // configure LED PWM functionalitites
-  ledcSetup(pwmChannel, pwmFreq, pwmResolution);
+  ledcSetup(PWMCHANNEL, PWMFREQ, PWMRESOLUTION);
   // attach the channel to the GPIO to be controlled
-  ledcAttachPin(pwmPin, pwmChannel);
+  ledcAttachPin(PWMPIN, PWMCHANNEL);
 
-  pwmValue = initialPwmValue;
+  pwmValue = INITIALPWMVALUE;
   updateMQTT_Screen_withNewPWMvalue(pwmValue, true);
   updateMQTT_Screen_withNewMode(false, true);
 
@@ -26,7 +26,7 @@ void initPWMfan(void){
 }
 
 void updateFanSpeed(void){
-  ledcWrite(pwmChannel, pwmValue);
+  ledcWrite(PWMCHANNEL, pwmValue);
 }
 
 void updateMQTT_Screen_withNewPWMvalue(int aPWMvalue, bool force) {
@@ -57,11 +57,11 @@ void updateMQTT_Screen_withNewMode(bool aModeIsOff, bool force) {
 
 #ifndef useAutomaticTemperatureControl
 void incFanSpeed(void){
-  int newPWMValue = min(pwmValue+pwmStep, 255);
+  int newPWMValue = min(pwmValue+PWMSTEP, 255);
   updateMQTT_Screen_withNewPWMvalue(newPWMValue, false);
 }
 void decFanSpeed(void){
-  int newPWMValue = max(pwmValue-pwmStep, 0);
+  int newPWMValue = max(pwmValue-PWMSTEP, 0);
   updateMQTT_Screen_withNewPWMvalue(newPWMValue, false);
 }
 #endif

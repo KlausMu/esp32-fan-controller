@@ -55,7 +55,7 @@ void initTFT(void) {
   #endif
 
   tft.setFont(myFont);
-  tft.setRotation(TFT_rotation); 
+  tft.setRotation(TFT_ROTATION); 
 
   calcDimensionsOfElements();
 
@@ -222,6 +222,8 @@ void tft_fillScreen(void) {
 
 /*
 https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
+https://www.heise.de/ratgeber/Adafruit-GFX-Library-Einfache-Grafiken-mit-ESP32-und-Display-erzeugen-7546653.html?seite=all
+https://www.heise.de/select/make/2023/2/2304608284785808657
                         AZ-Touch
               ST7735    ILI9341
   TextSize    Standard  FreeSans9pt7b FreeSerif9pt7b  FreeMono9pt7b  FreeSerifBoldItalic24pt7b
@@ -318,7 +320,7 @@ void draw_screen(void) {
   
     // fan
     printText(fanAreaLeft, fanAreaTop, fanAreaWidth, 0, "Fan:", textSizeOffset + 1, myFont, false);
-    sprintf(buffer, "%d rpm (%d%s)", last_rpm, (100*last_rpm)/fanMaxRPM, percentEscaped.c_str());
+    sprintf(buffer, "%d rpm (%d%s)", last_rpm, (100*last_rpm)/FANMAXRPM, percentEscaped.c_str());
     printText(fanAreaLeft, fanAreaTop, fanAreaWidth, 1, buffer, textSizeOffset + 1, myFont, true);
     sprintf(buffer, "%d/255 pwm (%d%s)", getPWMvalue(), (100*getPWMvalue())/255, percentEscaped.c_str());
     printText(fanAreaLeft, fanAreaTop, fanAreaWidth, 2, buffer, textSizeOffset + 1, myFont, true);
@@ -387,10 +389,10 @@ void draw_screen(void) {
 
     // clear screen
     tft.fillScreen(TFT_BLACK);
-    sprintf(buffer, "%d", shutdownCountdown - intSecondsSinceShutdown);
+    sprintf(buffer, "%d", SHUTDOWNCOUNTDOWN - intSecondsSinceShutdown);
     printText(getRelativeX(115), getRelativeY(80), getRelativeX(200), 0, buffer,       textSizeOffset + 4, myFont, false);
 
-    if ((unsigned long)(millis() - startCountdown) > shutdownCountdown*1000 + 15000){
+    if ((unsigned long)(millis() - startCountdown) > SHUTDOWNCOUNTDOWN*1000 + 15000){
       // if EPS32 is still alive, which means power is still available, then stop countdown and go back to normal mode
       Log.printf("hm, still alive? Better show mainscreen again\r\n");
       screen = SCREEN_NORMALMODE;

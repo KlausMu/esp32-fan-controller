@@ -14,18 +14,25 @@
 
 boolean connected = false;
 bool wifiIsDisabled = true;
-String accessPointName;
 
+#if defined(WIFI_KNOWN_APS)
+String accessPointName;
+const std::string wifiAccessPoints[WIFI_KNOWN_APS_COUNT][2] = {WIFI_KNOWN_APS};
+#endif
+
+#if defined(WIFI_KNOWN_APS)
 void setAccessPointName() {
   String BSSID = String(WiFi.BSSIDstr());
-  if        (BSSID == "00:11:22:33:44:55") {
-      accessPointName = "Your AP 2,4 GHz";
-  } else if (BSSID == "66:77:88:99:AA:BB") {
-      accessPointName = "Your AP 5 GHz";
-  } else {
-    accessPointName = "unknown";
+  for (unsigned int i = 0; i < WIFI_KNOWN_APS_COUNT; i++) {
+    if (wifiAccessPoints[i][0].compare(BSSID.c_str()) == 0) {
+      accessPointName = wifiAccessPoints[i][1].c_str();
+      return;
+    }
   }
+  accessPointName = "unknown";
+  return;
 }
+#endif
 
 #if defined(ESP32)
 void printWiFiStatus(void){
@@ -58,13 +65,15 @@ void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
 
   // shouldn't even be here when wifiIsDisabled, but still happens ...
   if (!wifiIsDisabled) {
-    WiFi.begin(wifi_ssid, wifi_password);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   }
 }
 void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.printf(MY_LOG_FORMAT("  Callback \"GotIP\"\r\n"));
   connected = true;
+  #if defined(WIFI_KNOWN_APS)
   setAccessPointName();
+  #endif
 
   printWiFiStatus();
 }
@@ -105,7 +114,7 @@ void onSTADisconnected (WiFiEventStationModeDisconnected event_info) {
 
   // shouldn't even be here when wifiIsDisabled, but still happens ...
   if (!wifiIsDisabled) {
-    WiFi.begin(wifi_ssid, wifi_password);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   }
 }
 //callback on got IP address
@@ -135,7 +144,7 @@ void wifi_enable(void) {
   static WiFiEventHandler e2;
   e2 = WiFi.onStationModeDisconnected(onSTADisconnected);
   #endif
-  WiFi.begin(wifi_ssid, wifi_password);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
 void wifi_disable(void){
   wifiIsDisabled = true;

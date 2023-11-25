@@ -76,5 +76,7 @@ For installing PlatformIO IDE, follow this <a href="https://docs.platformio.org/
 <!--- [[images/overview_esp32.jpg \| width=600px]] -->
 <!--- ![ArduiTouch](https://github.com/KlausMu/esp32-fan-controller/wiki/images/overview_esp32.jpg | width=600) doesn't work -->
 ![3DPrinter](https://github.com/KlausMu/esp32-fan-controller/wiki/images/3Dprinter.jpg)
+### Thermostat in Home Assistant
+![HomeAssistantThermostatCard](https://github.com/KlausMu/esp32-fan-controller/wiki/images/HA_climate_card_detail.png)
 
 <b>For more information please see the <a href="https://github.com/KlausMu/esp32-fan-controller/wiki/04-AZ%E2%80%90touch-or-ArduiTouch">Wiki: 04 AZ‐touch / ArduiTouch</a></b>

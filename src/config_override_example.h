@@ -1,5 +1,7 @@
 /*
 Copy this file to "config_override.h"
+Any defines from "config.h" in CAPITALS can be overridden in "config_override.h".
+All defines having BOTH lowercase and uppercase MUST stay in "config.h". They define the mode the esp32_fan_controller is running in.
 If you add additional overrides here, you have to
   1. first add #undef
   2. add new #define

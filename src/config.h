@@ -3,6 +3,8 @@
   Doing so, you will
   - keep your credentials secret
   - most likely never have conflicts with new versions of this file
+  Any define in CAPITALS can be moved to "config_override.h".
+  All defines having BOTH lowercase and uppercase MUST stay in this file. They define the mode the esp32_fan_controller is running in.
 */
 
 #ifndef __CONFIG_H__

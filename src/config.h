@@ -1,3 +1,10 @@
+/*
+  Before changing anything in this file, consider to copy file "config_override_example.h" to file "config_override.h" and to do your changes there.
+  Doing so, you will
+  - keep your credentials secret
+  - most likely never have conflicts with new versions of this file
+*/
+
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 

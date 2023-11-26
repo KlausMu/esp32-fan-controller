@@ -1,7 +1,7 @@
 # ESP32 fan controller with MQTT support
 This project describes how to use an ESP32 microcontroller for controlling a 4 pin fan (pwm controlled fan). Main features are:
-* mode 1 (pwm mode): directly setting fan speed via pwm signal
-* mode 2 (temperature controller mode): fan speed automatically increases if temperature is getting close to or higher than target temperature. Of course temperature can never get lower than air temperature of room.
+* mode 1 (fan mode or pwm mode): directly setting fan speed via pwm signal
+* mode 2 (climate mode or temperature controller mode): fan speed automatically increases if temperature is getting close to or higher than target temperature. Of course temperature can never get lower than air temperature of room.
 * measurement of fan speed via tacho signal
 * measurement of ambient values via BME280: temperature, humidity, pressure
 * support of MQTT
@@ -21,8 +21,8 @@ I did this project for having an automatic temperature controller for my 3D prin
 You can operate the ESP32 fan controller mainly in two different modes, depending on your needs:
 mode | description | how to set PWM | how to set actual temperature | how to set target temperature
 ------------ | ------------- | ------------- | ------------- | -------------
-pwm mode | fan speed directly set via PWM signal | MQTT, touch or both | BME280 (optional, only used for information) |
-temperature controller mode | automatic temperature control<br>fan speed is automatically set depending on difference between target temperature and actual temperature | | MQTT or BME280 | MQTT, touch or both
+fan mode | fan speed directly set via PWM signal | MQTT, touch or both | BME280 (optional, only used for information) |
+climate mode | automatic temperature control<br>fan speed is automatically set depending on difference between target temperature and actual temperature | | MQTT or BME280 | MQTT, touch or both
 
 In both modes, a TFT panel can optionally be used for showing status information from the fan, ambient (BME280: temperature, humidity, pressure) and the chosen target temperature. Different resolutions of the TFT panel are supported, layout will automatically be adapted (tested with 320x240 and 160x128).
 
@@ -70,7 +70,7 @@ For installing PlatformIO IDE, follow this <a href="https://docs.platformio.org/
 * upload to ESP32
 
 ## Images
-### ArduiTouch running in "temperature controller mode"
+### ArduiTouch running in "climate mode"
 ![TempControllerModeArduiTouch](https://github.com/KlausMu/esp32-fan-controller/wiki/images/tempControllerModeArduiTouch.jpg)
 ### Images of ESP32 fan controller used in a 3D printer housing
 <!--- [[images/overview_esp32.jpg \| width=600px]] -->

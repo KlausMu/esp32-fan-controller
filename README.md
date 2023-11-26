@@ -17,6 +17,12 @@ I did this project for having an automatic temperature controller for my 3D prin
 
 <b>For more information please see the <a href="https://github.com/KlausMu/esp32-fan-controller/wiki">Wiki</a></b>
 
+## Integration in Home Assistant
+With mqtt discovery, you can integrate the fan controller with almost no effort in Home Assistant.
+<a href="https://github.com/KlausMu/esp32-fan-controller/wiki/images/HA_climate_card_small.png"><img src="https://github.com/KlausMu/esp32-fan-controller/wiki/images/HA_climate_card_small.png"></a> <a href="https://github.com/KlausMu/esp32-fan-controller/wiki/images/HA_climate_card_detail_small.png"><img src="https://github.com/KlausMu/esp32-fan-controller/wiki/images/HA_climate_card_detail_small.png"></a>
+
+Please see <a href="https://github.com/KlausMu/esp32-fan-controller/wiki/05-Home-Assistant">Wiki: 05 Home Assistant</a>
+
 ## Operation modes
 You can operate the ESP32 fan controller mainly in two different modes, depending on your needs:
 mode | description | how to set PWM | how to set actual temperature | how to set target temperature

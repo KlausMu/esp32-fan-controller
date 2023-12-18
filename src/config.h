@@ -430,18 +430,14 @@ static_assert(false, "You cannot disable both MQTT and touch, otherwise you cann
 */
 
 #ifdef useShutdownButton
-#define SHUTDOWNREQUEST                "http://<IPAddressOfYourHAserver:8123>/api/services/input_button/press" // override it in file "config_override.h"
-#define SHUTDOWNPAYLOAD                "{\"entity_id\": \"input_button.3dprinter_shutdown\"}"                  // override it in file "config_override.h"
-#define SHUTDOWNHEADERNAME1            "Authorization"                                                         // override it in file "config_override.h"
-#define SHUTDOWNHEADERVALUE1           "Bearer <your bearer token>"                                            // override it in file "config_override.h"
-#define SHUTDOWNHEADERNAME2            "Content-Type"                                                          // override it in file "config_override.h"
-#define SHUTDOWNHEADERVALUE2           "application/json"                                                      // override it in file "config_override.h"
+#define MQTTCMNDSHUTDOWNTOPIC          UNIQUE_DEVICE_NAME "/cmnd/shutdown" // override it in file "config_override.h"
+#define MQTTCMNDSHUTDOWNPAYLOAD        "shutdown"                          // override it in file "config_override.h"
 #define SHUTDOWNCOUNTDOWN              30  // in seconds
 #endif
 
 // sanity check
-#if defined(useShutdownButton) && !defined(useWIFI)
-static_assert(false, "You have to use \"#define useWIFI\" when having \"#define useShutdownButton\"");
+#if defined(useShutdownButton) && !defined(useMQTT)
+static_assert(false, "You have to use \"#define useMQTT\" when having \"#define useShutdownButton\"");
 #endif
 #if (defined(useStandbyButton) || defined(useShutdownButton)) && !defined(useTouch)
 static_assert(false, "You have to use \"#define useTouch\" when having \"#define useStandbyButton\" or \"#define useShutdownButton\"");

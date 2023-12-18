@@ -6,6 +6,9 @@ bool mqtt_publish_stat_targetTemp();
 bool mqtt_publish_stat_actualTemp();
 bool mqtt_publish_stat_fanPWM();
 bool mqtt_publish_stat_mode();
+#ifdef useShutdownButton
+bool mqtt_publish_shutdown();
+#endif
 #ifdef useHomeassistantMQTTDiscovery
 /* Sets the start of the timer until HA discovery is sent.
    It will be waited WAITAFTERHAISONLINEUNTILDISCOVERYWILLBESENT ms before the discovery is sent.

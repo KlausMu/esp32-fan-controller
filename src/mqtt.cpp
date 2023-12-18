@@ -136,6 +136,11 @@ bool mqtt_publish_stat_fanPWM() {
 bool mqtt_publish_stat_mode() {
   return publishMQTTMessage(MQTTSTATFANMODE,    getModeIsOff() ? MQTTFANMODEOFFPAYLOAD : MQTTFANMODEFANONLYPAYLOAD);
 };
+#ifdef useShutdownButton
+bool mqtt_publish_shutdown() {
+  return publishMQTTMessage(MQTTCMNDSHUTDOWNTOPIC, MQTTCMNDSHUTDOWNPAYLOAD);
+};
+#endif
 
 #ifdef useHomeassistantMQTTDiscovery
 bool mqtt_publish_hass_discovery() {

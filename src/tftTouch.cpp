@@ -4,9 +4,9 @@
 #include "config.h"
 #include "fanPWM.h"
 #include "log.h"
-#include "shutdownRaspPi.h"
 #include "temperatureController.h"
 #include "tft.h"
+#include "mqtt.h"
 
 #ifdef useTouch
 //prepare driver for touch screen
@@ -86,7 +86,7 @@ void onClick(TS_Point p) {
   else if (screen == SCREEN_CONFIRMSHUTDOWN) {
     if (pointInRect(confirmShutdownYesRect, tsx, tsy)) {
       Log.printf("confirm shutdown yes hit\r\n");
-      if (shutdownRaspPi()){
+      if (mqtt_publish_shutdown()){
         screen = SCREEN_COUNTDOWN;
         startCountdown = millis();
       } else {

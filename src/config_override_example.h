@@ -14,12 +14,8 @@ If you add additional overrides here, you have to
 #undef MQTT_PASS
 #undef UNIQUE_DEVICE_FRIENDLYNAME
 #undef UNIQUE_DEVICE_NAME
-#undef SHUTDOWNREQUEST
-#undef SHUTDOWNPAYLOAD
-#undef SHUTDOWNHEADERNAME1
-#undef SHUTDOWNHEADERVALUE1
-#undef SHUTDOWNHEADERNAME2
-#undef SHUTDOWNHEADERVALUE2
+#undef MQTTCMNDSHUTDOWNTOPIC
+#undef MQTTCMNDSHUTDOWNPAYLOAD
 #undef TOUCH_CS
 #undef TOUCH_IRQ
 #undef LED_ON
@@ -39,12 +35,8 @@ If you add additional overrides here, you have to
 #endif
 
 #ifdef useShutdownButton
-#define SHUTDOWNREQUEST      "http://<IPAddressOfYourHAserver:8123>/api/services/input_button/press" // override here
-#define SHUTDOWNPAYLOAD      "{\"entity_id\": \"input_button.3dprinter_shutdown\"}"                  // override here
-#define SHUTDOWNHEADERNAME1  "Authorization"                                                         // override here
-#define SHUTDOWNHEADERVALUE1 "Bearer <your bearer token>"                                            // override here
-#define SHUTDOWNHEADERNAME2  "Content-Type"                                                          // override here
-#define SHUTDOWNHEADERVALUE2 "application/json"                                                      // override here
+#define MQTTCMNDSHUTDOWNTOPIC          UNIQUE_DEVICE_NAME "/cmnd/shutdown" // override here
+#define MQTTCMNDSHUTDOWNPAYLOAD        "shutdown"                          // override here
 #endif
 
 #ifdef useTFT

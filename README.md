@@ -1,3 +1,5 @@
+![Build](https://github.com/KlausMu/esp32-fan-controller/actions/workflows/build-platformio.yml/badge.svg)
+
 # ESP32 fan controller with MQTT support
 This project describes how to use an ESP32 microcontroller for controlling a 4 pin fan (pwm controlled fan). Main features are:
 * mode 1 (fan mode or pwm mode): directly setting fan speed via pwm signal

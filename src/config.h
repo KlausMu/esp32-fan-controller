@@ -33,12 +33,12 @@
      Target temperature: the target temperature will be tried to reach. The target temmperate can be provided via mqtt, via a touch display or both.
 */
 // --- Begin: list of presets. Choose exactly one. ---
-//#define fan_controlledByMQTT
+#define fan_controlledByMQTT
 //#define fan_controlledByTouch
 //#define fan_controlledByMQTTandTouch
 //#define climate_controlledByBME_targetByMQTT
 //#define climate_controlledByBME_targetByTouch
-#define climate_controlledByBME_targetByMQTTandTouch
+//#define climate_controlledByBME_targetByMQTTandTouch
 //#define climate_controlledByMQTT_targetByMQTT
 //#define climate_controlledByMQTT_targetByMQTTandTouch
 // --- End: list of presets --------------------------

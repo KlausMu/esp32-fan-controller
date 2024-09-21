@@ -89,6 +89,8 @@ bool checkMQTTconnection() {
         #endif
         #if defined(useHomeassistantMQTTDiscovery)
         mqttClient.subscribe(HASSSTATUSTOPIC);
+        // if we successfully connected or reconnected to the mqtt server, send HA discovery
+        timerStartForHAdiscovery = millis();
         #endif
       } else {
         Log.printf("  MQTT connection failed (but WiFi is available). Will try later ...\r\n");

@@ -58,6 +58,8 @@
 #if defined(fan_controlledByMQTT) || defined(fan_controlledByMQTTandTouch) || defined(climate_controlledByBME_targetByMQTT) || defined(climate_controlledByBME_targetByMQTTandTouch) || defined(climate_controlledByMQTT_targetByMQTT) || defined(climate_controlledByMQTT_targetByMQTTandTouch)
   #define useWIFI
   #define useMQTT
+  #define useOTAUpdate
+  // #define useOTA_RTOS     // not recommended because of additional 10K of heap space needed
 #endif
 #if defined(fan_controlledByTouch) || defined(fan_controlledByMQTTandTouch) || defined(climate_controlledByBME_targetByTouch) || defined(climate_controlledByBME_targetByMQTTandTouch) || defined(climate_controlledByMQTT_targetByMQTTandTouch)
   #define useTFT
@@ -96,6 +98,8 @@ First set mode, then go further down in this file to set other options needed fo
 // #define useTemperatureSensorBME280
 #define useWIFI
 #define useMQTT
+#define useOTAUpdate
+// #define useOTA_RTOS     // not recommended because of additional 10K of heap space needed
 // #define useTFT
   #ifdef useTFT
     // --- choose which display to use. Activate only one. -----------------------------------------------
@@ -215,8 +219,6 @@ static_assert(false, "You cannot have both \"#define setActualTemperatureViaBME2
 #endif
 
 // --- OTA Update ---------------------------------------------------------------------------------------------------------------------------
-#define useOTAUpdate
-// #define useOTA_RTOS     // not recommended because of additional 10K of heap space needed
 
 #if !defined(useWIFI) && defined(useOTAUpdate)
 static_assert(false, "\"#define useOTAUpdate\" is only possible with \"#define useWIFI\"");

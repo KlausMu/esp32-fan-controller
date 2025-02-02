@@ -32,7 +32,7 @@ bool pointInRect(const int rect[], int x, int y) {
       (x <= rect[0] + rect[2]) &&
       (y >= rect[1]) &&
       (y <= rect[1] + rect[3]);
-  } else if (invertTouchCoordinates) {
+  } else {
     return
       (tft_getWidth()  - x >= rect[0]) &&
       (tft_getWidth()  - x <= rect[0] + rect[2]) &&

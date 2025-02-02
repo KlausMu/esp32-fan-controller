@@ -393,6 +393,7 @@ static_assert(false, "You have to use \"#define useMQTT\" when having \"#define 
 #ifdef useTouch
 // #define TOUCH_CS         GPIO_NUM_14  // override it in file "config_override.h"
 // #define TOUCH_IRQ        GPIO_NUM_2   // override it in file "config_override.h"
+// #define TOUCH_INVERT_COORDINATES      // override it in file "config_override.h
 #endif
 // 2. "AZ-Touch" 2.8 inch, since November 2020
 // https://www.az-delivery.de/en/products/az-touch-wandgehauseset-mit-2-8-zoll-touchscreen-fur-esp8266-und-esp32
@@ -403,6 +404,7 @@ static_assert(false, "You have to use \"#define useMQTT\" when having \"#define 
 #ifdef useTouch
 #define TOUCH_CS         GPIO_NUM_14   // override it in file "config_override.h"
 #define TOUCH_IRQ        GPIO_NUM_27   // override it in file "config_override.h"
+// #define TOUCH_INVERT_COORDINATES       // override it in file "config_override.h
 #endif
 
 // sanity check

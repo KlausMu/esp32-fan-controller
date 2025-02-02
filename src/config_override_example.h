@@ -18,7 +18,9 @@ If you add additional overrides here, you have to
 #undef MQTTCMNDSHUTDOWNPAYLOAD
 #undef TOUCH_CS
 #undef TOUCH_IRQ
+#undef TFT_ROTATION
 #undef LED_ON
+#undef TOUCH_INVERT_COORDINATES
 
 #ifdef useWIFI
 #define WIFI_SSID            "YourWifiSSID"          // override here
@@ -40,9 +42,16 @@ If you add additional overrides here, you have to
 #endif
 
 #ifdef useTFT
+ #ifdef DRIVER_ILI9341
+ #define TFT_ROTATION          3 // use 1 (landscape) or 3 (landscape upside down), nothing else. 0 and 2 (portrait) will not give a nice result.
+ #endif
+ #ifdef DRIVER_ST7735
+ #define TFT_ROTATION          1 // use 1 (landscape) or 3 (landscape upside down), nothing else. 0 and 2 (portrait) will not give a nice result.
+ #endif
 #define LED_ON           HIGH          // override here
 #endif
 #ifdef useTouch
 #define TOUCH_CS         GPIO_NUM_14   // override here
 #define TOUCH_IRQ        GPIO_NUM_27   // override here
+//#define TOUCH_INVERT_COORDINATES       // override here
 #endif
